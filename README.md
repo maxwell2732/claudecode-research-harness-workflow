@@ -1,7 +1,7 @@
-# Claude Code Research Harness
+# Claude Code Research Harness Workflow
 
-> **面向 AI 辅助实证研究的受控执行框架。**  
-> 把 Claude Code 从“会写代码的助手”，变成“可审计、可复现的研究协作者”。
+> **面向 Agent 辅助实证研究的受控执行框架。**  
+> 把 Claude Code 从会写代码的智能体，变成可审计、可复现的研究协作者。
 
 **作者：** 朱 晨 | 遗传社科研究 Chen Zhu | China Agricultural University (CAU)
 
@@ -35,7 +35,7 @@
 
 **Claude Code Research Harness** 是一个面向 Claude Code 的实证研究执行框架。
 
-它不是一组 prompt，也不是一个普通 workflow，而是一个 **harness**：一套由规则、文件、检查点和证据要求组成的受控研究环境。它把 AI 智能体约束在可复现、可审计、可追踪的研究流程中。
+它不是一组 prompt，也不是一个普通 workflow，而是一个 **Harness**：一套由规则、文件、检查点和证据要求组成的受控研究环境。它把 AI 智能体约束在可复现、可审计、可追踪的研究流程中。
 
 普通用法是直接问智能体：
 
@@ -54,6 +54,36 @@ Claude Code Research Harness 的用法是让智能体在制度化环境里工作
 
 > **No script, no log, no claim.**  
 > **没有脚本，没有日志，就没有结论。**
+
+---
+
+## 实证研究中的 Harness 和软件开发中的 Harness 有什么不同？
+
+在软件开发和所谓 **Vibe coding** 语境中，Harness 通常指的是把 AI 编程智能体约束在一套工程化流程里：先写需求规格，再拆分任务，再修改代码，再运行测试，最后通过 review 和 release 检查。它解决的是一个核心问题：**不要让 Agent 只是凭感觉写代码，而要让每一次修改都能被测试、回滚和验收。**
+
+Claude Code Research Harness 继承了这个思想，但把对象从“软件代码”换成了“实证研究”。在研究场景里，真正危险的往往不是代码语法错误，而是样本构造不透明、数据清洗不可追溯、合并键错误、回归结果无法复现、因果表述超过识别设计、以及正文数字找不到对应日志。因此，Research Harness 不是只要求 Agent “代码能跑”，而是要求它证明：
+
+- 原始数据没有被修改；
+- 清洗和合并过程有脚本、有日志、有报告；
+- 样本限制、变量构造和模型设定与研究规格说明一致；
+- 每一个表格、图形和关键数字都能追溯到可运行脚本；
+- 每一个因果声明都经过识别策略审查；
+- 如果数据或设计不支持某个结论，Agent 必须停止，而不是编造一个看似合理的结果。
+
+因此，软件开发中的 Harness 更像是 **Coding Harness**：它关心代码变更、测试通过和 release readiness。Claude Code Research Harness 则是 **Research Harness**：它关心研究问题、数据来源、样本构造、识别可信度、结果复现和证据链完整性。
+
+它与 Vibe Research 的关系也类似。Vibe research 强调用自然语言驱动研究代码生成，让研究者可以更快地把想法变成脚本、表格和图形。但如果只有 Vibe，没有 Harness，Agent 很容易把“看起来完成了”误当成“真的可复现”。Research Harness 的作用，就是在 Vibe Research 之外加上一层研究制度：允许研究者用自然语言推进工作，但要求每一步都留下可检查的证据。
+
+简单说：
+
+> **Research Harness 让 Agent 更负责任地产生研究证据。**
+
+或者更直接地说：
+
+> 软件 Harness 约束 Agent 写代码。  
+> Research Harness 约束 Agent 做研究。  
+> 前者追求“代码通过测试”，后者追求“结论经得起追溯”。
+
 
 ---
 
@@ -80,7 +110,7 @@ Claude Code Research Harness 把这些风险转化为显式检查点：
 - 每一个因果声明都必须经过识别策略审查；
 - 每一个发布包都必须包含完整证据链。
 
-这就是“AI 助手”和“可审计研究智能体”的区别。
+这就是 AI 助手和可审计研究智能体的区别。
 
 ---
 
