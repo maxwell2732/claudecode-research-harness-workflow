@@ -88,7 +88,31 @@ When running `/research-harness-clean`:
 
 ---
 
-## 6. Data Protection and Version Control
+## 6. Task Completion Report（任务完成报告）
+
+**每次任务完成后，必须生成一份中文报告**，保存到 `reports/` 目录，文件名格式为 `report_<task-slug>_<YYYYMMDD>.md`。
+
+报告必须包含以下章节：
+
+| 章节 | 内容 |
+|------|------|
+| **任务背景** | 任务目标、触发原因、数据或问题描述 |
+| **执行过程** | 按步骤列出做了什么，包括脚本名、输入输出、关键参数 |
+| **关键结果** | 数量统计（行数、列数、匹配率等）均须来自日志，不得估算 |
+| **数据质量说明** | 跳过/合并的文件、缺失率、已知问题 |
+| **输出文件清单** | 每个输出文件的路径、行数、列数（来自日志） |
+| **证据链** | 每个关键数字对应的脚本路径 → 日志路径 |
+| **待办/遗留问题** | 本次未解决或需下一步跟进的事项 |
+
+**报告规则：**
+- 全文中文
+- 所有数字必须可追溯到日志文件，不得凭记忆填写
+- 报告本身不包含任何数据内容（无行内数据、无样本记录）
+- 报告完成后提交到 git（`git add reports/report_*.md`）
+
+---
+
+## 7. Data Protection and Version Control
 
 The following directories contain survey microdata or derived individual-level data and are subject to data protection requirements. They **must never be committed to git or pushed to any remote repository (including GitHub)**:
 
