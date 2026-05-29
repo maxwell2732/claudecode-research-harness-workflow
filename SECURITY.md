@@ -5,7 +5,7 @@
 Please report suspected vulnerabilities through GitHub private vulnerability
 reporting:
 
-https://github.com/Chachamaru127/claude-code-harness/security/advisories/new
+https://github.com/maxwell2732/claudecode-research-harness-workflow/security/advisories/new
 
 If private reporting is unavailable, open a public issue with only the affected
 component and high-level impact. Do not include exploit payloads, secrets,

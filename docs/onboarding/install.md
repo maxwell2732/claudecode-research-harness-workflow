@@ -31,7 +31,7 @@ claude
 Then inside Claude Code:
 
 ```text
-/plugin marketplace add Chachamaru127/claude-code-harness
+/plugin marketplace add maxwell2732/claudecode-research-harness-workflow
 /plugin install claude-code-harness@claude-code-harness-marketplace
 /harness-setup
 ```
@@ -76,7 +76,7 @@ release instead of raw ad hoc implementation.
 Install:
 
 ```bash
-git clone https://github.com/Chachamaru127/claude-code-harness.git
+git clone https://github.com/maxwell2732/claudecode-research-harness-workflow.git
 cd claude-code-harness
 ./scripts/setup-codex.sh --user
 ```
@@ -172,7 +172,7 @@ Success look: the result is recorded as `candidate`, `manual`, or
 Install:
 
 ```bash
-git clone https://github.com/Chachamaru127/claude-code-harness.git
+git clone https://github.com/maxwell2732/claudecode-research-harness-workflow.git
 cd your-project
 /path/to/claude-code-harness/scripts/setup-opencode.sh
 ```

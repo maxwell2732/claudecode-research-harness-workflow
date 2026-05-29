@@ -4,8 +4,8 @@ Status: Phase 55 / task 55.0.1
 
 Issues:
 
-- [#105 Can the default language be changed to English?](https://github.com/Chachamaru127/claude-code-harness/issues/105)
-- [#147 Status Marker Localization Issue](https://github.com/Chachamaru127/claude-code-harness/issues/147)
+- [#105 Can the default language be changed to English?](https://github.com/maxwell2732/claudecode-research-harness-workflow/issues/105)
+- [#147 Status Marker Localization Issue](https://github.com/maxwell2732/claudecode-research-harness-workflow/issues/147)
 
 Confirmed: 2026-04-24
 Updated: 2026-05-24 for Issue #147

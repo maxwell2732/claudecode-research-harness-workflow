@@ -1,31 +1,32 @@
 {
-  "name": "claude-code-harness-marketplace",
+  "name": "claudecode-research-harness-workflow",
   "metadata": {
-    "version": "4.12.11",
-    "description": "Marketplace entry for distributing and installing claude-code-harness as a single plugin."
+    "version": "1.0",
+    "description": "Marketplace entry for distributing and installing claudecode-research-harness-workflow as a single plugin."
   },
   "owner": {
-    "name": "Chachamaru"
+    "name": "Chen Zhu"
   },
   "plugins": [
     {
-      "name": "claude-code-harness",
-      "version": "4.12.11",
+      "name": "claudecode-research-harness-workflow",
+      "version": "1.0",
       "source": "./",
-      "description": "A harness for solo developers (Vibecoders) to handle full-cycle contract development.",
+      "description": "Research Agent Harness — a controlled execution environment for reproducible empirical research agents.",
       "author": {
-        "name": "Chachamaru",
-        "url": "https://github.com/Chachamaru127"
+        "name": "Chen Zhu",
+        "url": "https://github.com/maxwell2732"
       },
-      "homepage": "https://github.com/Chachamaru127/claude-code-harness",
-      "repository": "https://github.com/Chachamaru127/claude-code-harness",
+      "homepage": "https://github.com/maxwell2732/claudecode-research-harness-workflow",
+      "repository": "https://github.com/maxwell2732/claudecode-research-harness-workflow",
       "license": "MIT",
       "keywords": [
         "claude-code",
         "plugin",
-        "vibecoder",
-        "workflow",
-        "plan-work-review"
+        "empirical-research",
+        "reproducibility",
+        "econometrics",
+        "workflow"
       ],
       "category": "productivity",
       "strict": true

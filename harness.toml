@@ -2,18 +2,18 @@
 # Edit this file, then run `harness sync` to generate CC plugin files.
 
 [project]
-name = "research-agent-harness"
-version = "4.12.11"
+name = "claudecode-research-harness-workflow"
+version = "1.0"
 description = "Research Agent Harness — a controlled execution environment for reproducible empirical research agents."
-homepage = "https://github.com/Chachamaru127/claude-code-harness"
-repository = "https://github.com/Chachamaru127/claude-code-harness"
+homepage = "https://github.com/maxwell2732/claudecode-research-harness-workflow"
+repository = "https://github.com/maxwell2732/claudecode-research-harness-workflow"
 license = "MIT"
 keywords = ["claude-code", "plugin", "empirical-research", "reproducibility", "econometrics", "workflow"]
 outputStyles = "./output-styles/"
 
 [project.author]
-name = "Chachamaru"
-url = "https://github.com/Chachamaru127"
+name = "Chen Zhu"
+url = "https://github.com/maxwell2732"
 
 [env]
 CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = "1"

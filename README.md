@@ -505,6 +505,12 @@ Research Agent Harness 遵循四个原则。
 
 ---
 
+## 致谢
+
+本仓库的 Harness 框架结构（权限模型、工作流命令、研究诚信规则）基于 [Chachamaru127/claude-code-harness](https://github.com/Chachamaru127/claude-code-harness) 开发，在此对原作者的开创性工作表示感谢。本仓库在其基础上针对实证研究场景进行了定制，并加入了 CHNS 数据清理与合并流水线、数据保护规则和任务完成报告机制。
+
+---
+
 ## License
 
 MIT — see [`LICENSE.md`](LICENSE.md).

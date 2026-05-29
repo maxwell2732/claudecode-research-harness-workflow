@@ -144,4 +144,4 @@ Requires Go 1.22+.
 
 ## Questions?
 
-Open an issue: https://github.com/Chachamaru127/claude-code-harness/issues
+Open an issue: https://github.com/maxwell2732/claudecode-research-harness-workflow/issues
