@@ -1,3 +1,20 @@
+# ============================================================
+# DATA PROTECTION — CHNS survey microdata and derived files
+# These directories contain individual-level survey data and
+# must NEVER be committed or pushed to any remote repository.
+# See CLAUDE.md §6 for enforcement rules.
+# ============================================================
+input/data/
+data/raw/
+data/intermediate/
+data/processed/
+# Also block common derived formats individually
+*.sas7bdat
+*.dta
+*.parquet
+chns_merged_panel.csv
+chns_codebook.csv
+
 # OS generated files
 .DS_Store
 .DS_Store?
