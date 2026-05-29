@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 540" fill="none">
+  <defs>
+    <style>
+      .title { font: 300 22px Inter, -apple-system, sans-serif; fill: #1A1A18; letter-spacing: 0.08em; }
+      .subtitle { font: 400 11px Inter, -apple-system, sans-serif; fill: #52524C; letter-spacing: 0.04em; }
+      .head { font: 500 12px Inter, -apple-system, sans-serif; fill: #F8F7F4; letter-spacing: 0.04em; }
+      .label { font: 400 11.5px "Noto Sans JP", Inter, sans-serif; fill: #2D2D2A; }
+      .cellYes { font: 500 12px Inter, sans-serif; fill: #3D7A5A; letter-spacing: 0.04em; }
+      .cellPartial { font: 400 12px Inter, sans-serif; fill: #A08040; letter-spacing: 0.04em; }
+      .cellNo { font: 400 12px Inter, sans-serif; fill: #8A8A82; letter-spacing: 0.04em; }
+      .note { font: 400 10px Inter, sans-serif; fill: #8A8A82; letter-spacing: 0.04em; }
+      .tagline { font: 400 11px Inter, sans-serif; fill: #52524C; letter-spacing: 0.04em; }
+    </style>
+  </defs>
+
+  <!-- Background: Hakuji -->
+  <rect width="980" height="540" rx="2" fill="#F8F7F4"/>
+  <rect x="0.5" y="0.5" width="979" height="539" rx="1.5" fill="none" stroke="#D4D4D0"/>
+
+  <!-- Title -->
+  <text x="40" y="40" class="title">The default path after install</text>
+  <text x="40" y="60" class="subtitle">Not the ceiling — the floor. With harness-mem, sessions remember.</text>
+
+  <!-- Table: total 900px wide, starting at x=40 -->
+  <g transform="translate(40 80)">
+
+    <!-- Header: Sumi-900 -->
+    <rect width="900" height="40" rx="2" fill="#1A1A18"/>
+    <text x="14" y="25" class="head">Capability</text>
+    <text x="360" y="25" text-anchor="middle" class="head">Harness + mem</text>
+    <text x="510" y="25" text-anchor="middle" class="head">Harness solo</text>
+    <text x="660" y="25" text-anchor="middle" class="head">Superpowers</text>
+    <text x="820" y="25" text-anchor="middle" class="head">cc-sdd</text>
+
+    <!-- Kin accent under Harness+mem -->
+    <rect x="290" y="38" width="140" height="2" fill="#A08040"/>
+
+    <!-- Column dividers -->
+    <line x1="290" y1="40" x2="290" y2="400" stroke="#D4D4D0" stroke-dasharray="2 4"/>
+    <line x1="430" y1="40" x2="430" y2="400" stroke="#D4D4D0" stroke-dasharray="2 4"/>
+    <line x1="580" y1="40" x2="580" y2="400" stroke="#D4D4D0" stroke-dasharray="2 4"/>
+    <line x1="740" y1="40" x2="740" y2="400" stroke="#D4D4D0" stroke-dasharray="2 4"/>
+
+    <!-- Rows (36px each, alternating) -->
+    <!-- Row 1 -->
+    <rect y="40" width="900" height="36" fill="#F8F7F4"/>
+    <text x="14" y="64" class="label">Plans as repo artifacts</text>
+    <text x="360" y="64" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="510" y="64" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="660" y="64" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="820" y="64" text-anchor="middle" class="cellYes">DEFAULT</text>
+
+    <!-- Row 2 -->
+    <rect y="76" width="900" height="36" fill="#FAF9F6"/>
+    <text x="14" y="100" class="label">Single operating path</text>
+    <text x="360" y="100" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="510" y="100" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="660" y="100" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="820" y="100" text-anchor="middle" class="cellPartial">PARTIAL</text>
+
+    <!-- Row 3 -->
+    <rect y="112" width="900" height="36" fill="#F8F7F4"/>
+    <text x="14" y="136" class="label">Built-in review before finish</text>
+    <text x="360" y="136" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="510" y="136" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="660" y="136" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="820" y="136" text-anchor="middle" class="cellPartial">PARTIAL</text>
+
+    <!-- Row 4 -->
+    <rect y="148" width="900" height="36" fill="#FAF9F6"/>
+    <text x="14" y="172" class="label">Runtime guardrails</text>
+    <text x="360" y="172" text-anchor="middle" class="cellYes">13 RULES</text>
+    <text x="510" y="172" text-anchor="middle" class="cellYes">13 RULES</text>
+    <text x="660" y="172" text-anchor="middle" class="cellPartial">PARTIAL</text>
+    <text x="820" y="172" text-anchor="middle" class="cellNo">NOT CORE</text>
+
+    <!-- Row 5 -->
+    <rect y="184" width="900" height="36" fill="#F8F7F4"/>
+    <text x="14" y="208" class="label">Rerunnable validation</text>
+    <text x="360" y="208" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="510" y="208" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="660" y="208" text-anchor="middle" class="cellPartial">PARTIAL</text>
+    <text x="820" y="208" text-anchor="middle" class="cellYes">DEFAULT</text>
+
+    <!-- Row 6 -->
+    <rect y="220" width="900" height="36" fill="#FAF9F6"/>
+    <text x="14" y="244" class="label">End-to-end automated runs</text>
+    <text x="360" y="244" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="510" y="244" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="660" y="244" text-anchor="middle" class="cellPartial">PARTIAL</text>
+    <text x="820" y="244" text-anchor="middle" class="cellNo">NOT CORE</text>
+
+    <!-- Row 7: Hokage highlight -->
+    <rect y="256" width="900" height="36" fill="#F8F7F4"/>
+    <text x="14" y="280" class="label">Hook latency per tool call</text>
+    <text x="360" y="280" text-anchor="middle" class="cellYes">3-10 ms</text>
+    <text x="510" y="280" text-anchor="middle" class="cellYes">3-10 ms</text>
+    <text x="660" y="280" text-anchor="middle" class="cellNo">N/A</text>
+    <text x="820" y="280" text-anchor="middle" class="cellNo">N/A</text>
+
+    <!-- Row 8: harness-mem highlight -->
+    <rect y="292" width="900" height="36" fill="#FAF9F6"/>
+    <text x="14" y="316" class="label">Cross-session memory</text>
+    <text x="360" y="316" text-anchor="middle" class="cellYes">AUTO</text>
+    <text x="510" y="316" text-anchor="middle" class="cellPartial">JSONL</text>
+    <text x="660" y="316" text-anchor="middle" class="cellNo">—</text>
+    <text x="820" y="316" text-anchor="middle" class="cellNo">—</text>
+
+    <!-- Row 9 -->
+    <rect y="328" width="900" height="36" fill="#F8F7F4"/>
+    <text x="14" y="352" class="label">Parallel agent teams</text>
+    <text x="360" y="352" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="510" y="352" text-anchor="middle" class="cellYes">DEFAULT</text>
+    <text x="660" y="352" text-anchor="middle" class="cellNo">—</text>
+    <text x="820" y="352" text-anchor="middle" class="cellNo">—</text>
+
+    <!-- Row 10 -->
+    <rect y="364" width="900" height="36" fill="#FAF9F6"/>
+    <text x="14" y="388" class="label">Zero Node.js dependency</text>
+    <text x="360" y="388" text-anchor="middle" class="cellYes">YES</text>
+    <text x="510" y="388" text-anchor="middle" class="cellYes">YES</text>
+    <text x="660" y="388" text-anchor="middle" class="cellNo">Needs Node</text>
+    <text x="820" y="388" text-anchor="middle" class="cellNo">Needs Node</text>
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(40 498)">
+    <circle cx="5" cy="4" r="4" fill="#A08040"/>
+    <text x="16" y="8" class="tagline">Harness + mem = planned, guarded, reviewed, rerunnable, and remembered.</text>
+  </g>
+  <text x="40" y="528" class="note">* Default install behavior as of 2026-04-13. Marketing presentation — see docs/github-harness-plugin-benchmark.md for details.</text>
+</svg>

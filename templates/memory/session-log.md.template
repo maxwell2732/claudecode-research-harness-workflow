@@ -1,0 +1,35 @@
+---
+_harness_template: "memory/session-log.md.template"
+_harness_version: "2.5.27"
+---
+
+# Session Log
+
+セッション単位の作業ログ（基本はローカル運用向け）。
+重要な意思決定は `.claude/memory/decisions.md`、再利用できる解法は `.claude/memory/patterns.md` に昇格してください。
+
+## Index
+
+- {{DATE}} (session: {{SESSION_ID}}): （要約を1行で）
+
+---
+
+## セッション: {{DATE}} (session: {{SESSION_ID}})
+
+### 実行したこと
+
+- （箇条書きで）
+
+### 重要な決定（昇格候補）
+
+- （`decisions.md`へ書くべきもの）
+
+### 学んだパターン（昇格候補）
+
+- （`patterns.md`へ書くべきもの）
+
+### 次回への引き継ぎ
+
+- （未完了/注意点）
+
+

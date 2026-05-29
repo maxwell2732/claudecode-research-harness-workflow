@@ -1,0 +1,26 @@
+{
+  "name": "research-agent-harness",
+  "version": "4.12.11",
+  "description": "Research Agent Harness — a controlled execution environment for reproducible empirical research agents. Enforces source-of-truth files, data integrity rules, evidence trails, and human review gates across the full research lifecycle.",
+  "author": {
+    "name": "Chachamaru",
+    "url": "https://github.com/Chachamaru127"
+  },
+  "homepage": "https://github.com/Chachamaru127/claude-code-harness",
+  "repository": "https://github.com/Chachamaru127/claude-code-harness",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "empirical-research",
+    "reproducibility",
+    "econometrics",
+    "data-cleaning",
+    "replication",
+    "workflow"
+  ],
+  "skills": [
+    "./skills/"
+  ],
+  "outputStyles": "./output-styles/"
+}

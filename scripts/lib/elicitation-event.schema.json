@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "elicitation-event.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_kind",
+    "run_id",
+    "privacy_tags",
+    "evidence_refs",
+    "source",
+    "timestamp"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "elicitation-event.v1"
+    },
+    "event_kind": {
+      "type": "string",
+      "enum": [
+        "capability_probe",
+        "weak_label",
+        "judge_verdict",
+        "eval_result",
+        "counterexample"
+      ]
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "rubric_id": {
+      "type": "string"
+    },
+    "reward_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["APPROVE", "REQUEST_CHANGES", "STOP", "INFO"]
+    },
+    "privacy_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["may_train", "do_not_train", "synthetic_only", "legal_hold"]
+      },
+      "minItems": 1
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "mcp_server": {
+      "type": "string"
+    },
+    "elicitation_id": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "result_status": {
+      "type": "string"
+    },
+    "breezing_session": {
+      "type": "string"
+    }
+  }
+}

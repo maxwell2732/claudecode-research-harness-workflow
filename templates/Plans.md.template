@@ -1,0 +1,95 @@
+---
+_harness_template: "Plans.md.template"
+_harness_version: "4.3.3"
+---
+
+# Plans.md - Task Tracking
+
+> **Project**: {{PROJECT_NAME}}
+> **Last updated**: {{DATE}}
+> **Updated by**: Claude Code
+
+---
+
+## In Progress
+
+<!-- Add tasks with cc:wip here. -->
+
+(none)
+
+---
+
+## Not Started
+
+<!-- Add tasks with cc:todo or pm:requested here. -->
+
+- [ ] Initial project setup `cc:todo`
+  - Create the basic directory structure
+  - Install dependencies
+
+---
+
+## Completed
+
+<!-- Add tasks with cc:done or pm:approved here. -->
+
+- [x] Introduce the 2-Agent / 2-Claude workflow `pm:approved` ({{DATE}})
+
+---
+
+## Archive
+
+<!-- Move older completed tasks here. -->
+
+---
+
+## Status Marker Legend
+
+These markers are protocol values used by Harness tooling. Keep them unchanged
+unless the project has tested parser aliases.
+
+| Marker | Meaning |
+|--------|---------|
+| `pm:requested` | PM requested work |
+| `cc:todo` | Not started by Claude Code |
+| `cc:wip` | Claude Code is working |
+| `cc:done` | Claude Code completed the task and is awaiting confirmation |
+| `pm:approved` | PM confirmed completion |
+| `pm:依頼中` | Compatibility alias for `pm:requested` |
+| `cc:TODO` | Compatibility alias for `cc:todo` |
+| `cc:WIP` | Compatibility alias for `cc:wip` |
+| `pm:確認済` | Compatibility alias for `pm:approved` |
+| `cursor:依頼中` | Compatibility alias for `pm:requested` |
+| `cursor:確認済` | Compatibility alias for `pm:approved` |
+| `blocked` | Blocked; include the reason next to the task |
+
+---
+
+## Optional Extended Syntax
+
+For larger plans, you may add task IDs, dependencies, and parallel markers.
+
+### Task ID / Dependency / Parallel Marker
+
+```markdown
+- [ ] T001: Authentication `cc:todo`
+- [ ] T002: User API `cc:todo` depends:T001
+- [ ] T003: Product API `cc:todo` [P]
+- [ ] T004: Order API `cc:todo` depends:T001,T003
+```
+
+| Syntax | Meaning | Example |
+|--------|---------|---------|
+| `T001:` | Optional task ID | Used for references and dependencies |
+| `depends:ID` | Dependency task | `depends:T001,T002` |
+| `[P]` | Parallelizable | Can run at the same time as other ready tasks |
+
+**Note**: Extended syntax is optional. The plain checklist format still works.
+
+---
+
+## Last Update
+
+- **Updated at**: {{DATE}}
+- **Last session owner**: Claude Code
+- **Branch**: main

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>{{title}}</title>
+<style>
+  /* Claude Harness Brand palette
+     - 白地に黒文字、ハーネスオレンジを 1 点だけ差すミニマル構成 */
+  :root {
+    --harness-bg:     #FAFAFA;  /* off-white background */
+    --harness-fg:     #0F0F0F;  /* near-black text (logo wordmark と一致) */
+    --harness-orange: #F58A4A;  /* Claude Harness Orange (logo の harness 色) */
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--harness-bg);
+    color: var(--harness-fg);
+    font-family: "Inter", "Noto Sans JP", system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px 32px;
+  }
+  h1 {
+    font-weight: 600;
+    font-size: 28px;
+    margin: 0 0 32px 0;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--harness-orange);
+  }
+  ul.sections {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  ul.sections li {
+    padding: 12px 0 12px 16px;
+    border-left: 3px solid var(--harness-orange);
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>{{title}}</h1>
+  <ul class="sections">{{#sections}}
+    <li>{{name}}</li>{{/sections}}
+  </ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,164 @@
+---
+_harness_template: "AGENTS.md.template"
+_harness_version: "4.3.3"
+---
+
+# AGENTS.md - Development Flow Overview
+
+> **Project**: {{PROJECT_NAME}}
+> **Created**: {{DATE}}
+> **Setup locale**: {{LANGUAGE}}
+
+---
+
+## 0. Development Flow Overview
+
+### Two-Agent Operating Model
+
+| Agent | Role | Main responsibilities |
+|-------|------|-----------------------|
+| **Cursor** | PM (project manager) | Task management, review, and production release decisions |
+| **Claude Code** | Worker | Implementation, tests, CI fixes, and staging deploys |
+
+### Workflow
+
+```
+Cursor (PM)          Claude Code (Worker)
+    |                       |
+    |  1. Request work      |
+    |  (/handoff-to-claude) |
+    |---------------------->|
+    |                       |
+    |                       | 2. Sync context -> implement -> commit
+    |                       |    (/sync-status -> /work)
+    |                       |
+    |  3. Completion report |
+    |  (/handoff-to-cursor) |
+    |<----------------------|
+    |                       |
+    | 4. Review and release |
+    |  (/review-cc-work)    |
+    |                       |
+```
+
+---
+
+## 1. File Map
+
+| File | Purpose | Readers |
+|------|---------|---------|
+| `AGENTS.md` | Shared development flow overview | Both agents |
+| `CLAUDE.md` | Claude Code-specific instructions | Claude Code |
+| `Plans.md` | Task tracking | Both agents |
+
+---
+
+## 2. Responsibilities
+
+### Cursor (PM)
+
+- [ ] Define tasks and add them to `Plans.md`
+- [ ] Hand work to Claude Code
+- [ ] Review completion reports
+- [ ] Decide and run production deploys
+
+### Claude Code (Worker)
+
+- [ ] Implement scoped tasks
+- [ ] Run tests and validation
+- [ ] Commit and push changes
+- [ ] Fix CI failures up to 3 attempts
+- [ ] Deploy to staging when applicable
+- [ ] Write completion reports
+
+---
+
+## 3. Task Tracking (`Plans.md`)
+
+### Status Markers
+
+These markers are internal protocol values. Keep them as written unless the
+project explicitly adds tested aliases.
+
+| Marker | Meaning | Set by |
+|--------|---------|--------|
+| `pm:依頼中` | PM requested work (compatible with `cursor:依頼中`) | PM (Cursor / PM Claude) |
+| `cc:TODO` | Not started by Claude Code | Either agent |
+| `cc:WIP` | Claude Code is working | Claude Code |
+| `cc:完了` | Claude Code completed the work | Claude Code |
+| `pm:確認済` | PM confirmed completion (compatible with `cursor:確認済`) | PM (Cursor / PM Claude) |
+| `cursor:依頼中` | Compatibility alias for `pm:依頼中` | Cursor |
+| `cursor:確認済` | Compatibility alias for `pm:確認済` | Cursor |
+| `blocked` | Blocked | Either agent |
+
+### State Flow
+
+```
+pm:依頼中 -> cc:WIP -> cc:完了 -> pm:確認済
+```
+
+---
+
+## 4. CI/CD Rules
+
+### Claude Code Scope
+
+- CI error fixes up to 3 attempts
+- Staging deploys
+- Production deploys are owned by Cursor / PM
+
+### Three-Attempt Rule
+
+If CI fails 3 times in a row:
+
+1. Stop automatic fixes.
+2. Create an escalation report.
+3. Ask Cursor / PM for a decision.
+
+---
+
+## 5. Commit Message Convention
+
+```text
+feat: add a new feature
+fix: fix a bug
+docs: update documentation
+refactor: refactor code
+test: add or update tests
+chore: maintenance work
+```
+
+Example: `feat: add user authentication`
+
+---
+
+## 6. Prohibited Actions
+
+### Claude Code Must Not
+
+- Deploy directly to production
+- Attempt CI auto-fixes more than 3 times
+- Work outside the requested scope
+- Change security-sensitive settings unless explicitly requested
+
+### Shared Rules
+
+- Do not force-push (`--force` / `--force-with-lease`)
+- Do not commit secrets
+
+> **Note**: Solo projects may allow direct pushes to `main` because CI still
+> runs on push. For shared projects, switch to pull requests.
+
+---
+
+## 7. Troubleshooting
+
+| Symptom | Action |
+|---------|--------|
+| CI keeps failing | Try 3 fixes, then escalate to Cursor / PM |
+| Task scope is unclear | Ask Cursor / PM for clarification |
+| `Plans.md` is out of date | Run `/sync-status` and inspect the current state |
+
+---
+
+*Both Cursor and Claude Code may read this document.*

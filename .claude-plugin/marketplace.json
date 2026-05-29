@@ -1,0 +1,34 @@
+{
+  "name": "claude-code-harness-marketplace",
+  "metadata": {
+    "version": "4.12.11",
+    "description": "Marketplace entry for distributing and installing claude-code-harness as a single plugin."
+  },
+  "owner": {
+    "name": "Chachamaru"
+  },
+  "plugins": [
+    {
+      "name": "claude-code-harness",
+      "version": "4.12.11",
+      "source": "./",
+      "description": "A harness for solo developers (Vibecoders) to handle full-cycle contract development.",
+      "author": {
+        "name": "Chachamaru",
+        "url": "https://github.com/Chachamaru127"
+      },
+      "homepage": "https://github.com/Chachamaru127/claude-code-harness",
+      "repository": "https://github.com/Chachamaru127/claude-code-harness",
+      "license": "MIT",
+      "keywords": [
+        "claude-code",
+        "plugin",
+        "vibecoder",
+        "workflow",
+        "plan-work-review"
+      ],
+      "category": "productivity",
+      "strict": true
+    }
+  ]
+}

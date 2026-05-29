@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Acceptance Demo: {{user_request}}</title>
+<style>
+  /* Claude Harness Brand palette */
+  :root {
+    --harness-bg:     #FAFAFA;
+    --harness-fg:     #0F0F0F;
+    --harness-orange: #F58A4A;
+    --harness-muted:  #6B6B6B;
+    --harness-line:   #E5E5E5;
+    --harness-warn:   #C25030;
+    --harness-success:#2E7A4A;
+    --harness-info:   #3D6B9A;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--harness-bg);
+    color: var(--harness-fg);
+    font-family: "Inter", "Noto Sans JP", system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 32px 96px;
+  }
+  header.accept-header {
+    margin-bottom: 40px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--harness-orange);
+  }
+  header.accept-header .label {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--harness-orange);
+    margin-bottom: 8px;
+  }
+  header.accept-header h1 {
+    font-weight: 600;
+    font-size: 24px;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+  }
+  header.accept-header .meta {
+    color: var(--harness-muted);
+    font-size: 13px;
+  }
+  section.accept-section {
+    margin-bottom: 36px;
+  }
+  section.accept-section h2 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 12px 0;
+    color: var(--harness-fg);
+  }
+  ul.cards {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  ul.cards li {
+    padding: 12px 16px;
+    border-left: 3px solid var(--harness-line);
+    background: #fff;
+    margin-bottom: 8px;
+  }
+  ul.cards li.passed {
+    border-left-color: var(--harness-success);
+  }
+  ul.cards li.failed {
+    border-left-color: var(--harness-warn);
+  }
+  ul.cards li .name {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  ul.cards li .status {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 1px 8px;
+    border-radius: 2px;
+    color: #fff;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  ul.cards li.passed .status { background: var(--harness-success); }
+  ul.cards li.failed .status { background: var(--harness-warn); }
+  ul.cards li .evidence {
+    color: var(--harness-muted);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  ul.cards li .evidence-warn {
+    color: var(--harness-warn);
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  ul.refs li {
+    border-left: 3px solid var(--harness-info);
+  }
+  ul.refs li .id {
+    color: var(--harness-info);
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  ul.caveats {
+    list-style: disc;
+    padding-left: 24px;
+    color: var(--harness-warn);
+    font-size: 14px;
+  }
+  .recommendation {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .recommendation.ship   { background: #EAF5EE; border-left: 6px solid var(--harness-success); }
+  .recommendation.wait   { background: #FCF1E5; border-left: 6px solid var(--harness-orange); }
+  .recommendation.reject { background: #F9E8E3; border-left: 6px solid var(--harness-warn); }
+  .recommendation .verdict {
+    font-weight: 600;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .recommendation.ship   .verdict { color: var(--harness-success); }
+  .recommendation.wait   .verdict { color: var(--harness-orange); }
+  .recommendation.reject .verdict { color: var(--harness-warn); }
+  ul.evidence-list {
+    list-style: disc;
+    padding-left: 24px;
+    color: var(--harness-muted);
+    font-size: 13px;
+  }
+  ul.artifacts li {
+    border-left: 3px solid var(--harness-orange);
+    background: #fff;
+  }
+  ul.artifacts li .kind {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 1px 8px;
+    border-radius: 2px;
+    background: var(--harness-orange);
+    color: #fff;
+    margin-right: 8px;
+  }
+  footer.accept-footer {
+    margin-top: 56px;
+    padding-top: 16px;
+    border-top: 1px solid var(--harness-line);
+    color: var(--harness-muted);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="accept-header">
+    <span class="label">Acceptance Demo</span>
+    <h1>{{user_request}}</h1>
+    <div class="meta">{{project}} &middot; {{generated_at}}</div>
+  </header>
+
+  <section class="accept-section">
+    <h2>判定</h2>
+    <div class="recommendation {{recommendation}}">
+      <span class="verdict">{{recommendation}}</span>
+    </div>
+    <ul class="evidence-list">{{#recommendation_evidence_items}}
+      <li>{{text}}</li>{{/recommendation_evidence_items}}
+    </ul>
+  </section>
+
+  <section class="accept-section">
+    <h2>受け入れ基準の検証結果</h2>
+    <ul class="cards">{{#verified_criteria_items}}
+      <li class="{{status_label}}">
+        <span class="name">{{name}}</span>
+        <span class="status">{{status_label}}</span>
+        <div class="evidence">{{evidence}}</div>
+        <div class="evidence-warn">{{evidence_warn}}</div>
+      </li>{{/verified_criteria_items}}
+    </ul>
+  </section>
+
+  <section class="accept-section">
+    <h2>未検証の留保事項</h2>
+    <ul class="caveats">{{#unverified_caveats_items}}
+      <li>{{text}}</li>{{/unverified_caveats_items}}
+    </ul>
+  </section>
+
+  <section class="accept-section">
+    <h2>提示された成果物</h2>
+    <ul class="cards artifacts">{{#demo_artifacts}}
+      <li>
+        <span class="kind">{{kind}}</span>
+        <span class="name">{{path}}</span>
+      </li>{{/demo_artifacts}}
+    </ul>
+  </section>
+
+  <section class="accept-section">
+    <h2>過去の問題パターン (現タスクで verified か)</h2>
+    <ul class="cards refs">{{#past_issue_patterns}}
+      <li>
+        <span class="id">{{pattern_id}}</span>
+        <span class="name">{{title}}</span>
+      </li>{{/past_issue_patterns}}
+    </ul>
+  </section>
+
+  <section class="audit-trail" style="margin-top:32px;padding:16px 20px;background:#F5F4F1;border:1px solid #E5E5E5;border-radius:4px;font-size:0.85em;color:#52524C;">
+    <h2 style="margin:0 0 8px;font-size:0.9em;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;color:#52524C;">🔍 この artifact の根拠</h2>
+    <ul style="list-style:none;margin:0;padding:0;line-height:1.8;">
+      <li><strong>検索範囲</strong>: {{audit_search_scope}}</li>
+      <li><strong>参照 ID</strong>: {{audit_referenced_ids}}</li>
+      <li><strong>redact 件数</strong>: {{audit_redaction_summary}}</li>
+      <li><strong>audit log</strong>: {{audit_log_path}}</li>
+    </ul>
+  </section>
+
+  <footer class="accept-footer">
+    acceptance-context.v1 &middot; project: {{project}} &middot; user_request_hash: {{user_request_hash}} &middot; generated_at: {{generated_at}}
+  </footer>
+</main>
+</body>
+</html>

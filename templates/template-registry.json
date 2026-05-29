@@ -1,0 +1,186 @@
+{
+  "$schema": "./template-registry.schema.json",
+  "description": "Template-to-output mapping. Update templateVersion when a template changes.",
+  "templates": {
+    "CLAUDE.md.template": {
+      "output": "CLAUDE.md",
+      "templateVersion": "4.3.3",
+      "description": "Project guidance",
+      "tracked": true
+    },
+    "AGENTS.md.template": {
+      "output": "AGENTS.md",
+      "templateVersion": "4.3.3",
+      "description": "Agent guidance",
+      "tracked": true
+    },
+    "Plans.md.template": {
+      "output": "Plans.md",
+      "templateVersion": "4.3.3",
+      "description": "Task tracking",
+      "tracked": true
+    },
+    "locales/ja/CLAUDE.md.template": {
+      "output": "CLAUDE.md",
+      "templateVersion": "4.3.3",
+      "description": "Project guidance (Japanese)",
+      "tracked": true,
+      "locale": "ja"
+    },
+    "locales/ja/AGENTS.md.template": {
+      "output": "AGENTS.md",
+      "templateVersion": "4.3.3",
+      "description": "Agent guidance (Japanese)",
+      "tracked": true,
+      "locale": "ja"
+    },
+    "locales/ja/Plans.md.template": {
+      "output": "Plans.md",
+      "templateVersion": "4.3.3",
+      "description": "Task tracking (Japanese)",
+      "tracked": true,
+      "locale": "ja"
+    },
+    "rules/workflow.md.template": {
+      "output": ".claude/rules/workflow.md",
+      "templateVersion": "2.5.23",
+      "description": "Workflow rules",
+      "tracked": true
+    },
+    "rules/coding-standards.md.template": {
+      "output": ".claude/rules/coding-standards.md",
+      "templateVersion": "2.5.23",
+      "description": "Coding standards",
+      "tracked": true
+    },
+    "rules/testing.md.template": {
+      "output": ".claude/rules/testing.md",
+      "templateVersion": "2.5.23",
+      "description": "Testing rules",
+      "tracked": true
+    },
+    "rules/plans-management.md.template": {
+      "output": ".claude/rules/plans-management.md",
+      "templateVersion": "2.5.23",
+      "description": "Plans.md management rules",
+      "tracked": true
+    },
+    "rules/ui-debugging-agent-browser.md.template": {
+      "output": ".claude/rules/ui-debugging-agent-browser.md",
+      "templateVersion": "2.7.13",
+      "description": "UI debugging rules (agent-browser preferred)",
+      "tracked": true
+    },
+    "rules/test-quality.md.template": {
+      "output": ".claude/rules/test-quality.md",
+      "templateVersion": "2.5.30",
+      "description": "Test quality guardrails",
+      "tracked": true
+    },
+    "rules/implementation-quality.md.template": {
+      "output": ".claude/rules/implementation-quality.md",
+      "templateVersion": "2.5.30",
+      "description": "Implementation quality guardrails",
+      "tracked": true
+    },
+    "rules/quality-gates.md.template": {
+      "output": ".claude/rules/quality-gates.md",
+      "templateVersion": "2.5.30",
+      "description": "Quality gate rules",
+      "tracked": true
+    },
+    "rules/security-guidelines.md.template": {
+      "output": ".claude/rules/security-guidelines.md",
+      "templateVersion": "2.5.30",
+      "description": "Security review guidelines",
+      "tracked": true
+    },
+    "rules/tdd-guidelines.md.template": {
+      "output": ".claude/rules/tdd-guidelines.md",
+      "templateVersion": "2.5.30",
+      "description": "TDD guidance rules",
+      "tracked": true
+    },
+    "rules/skills-gate.md.template": {
+      "output": ".claude/rules/skills-gate.md",
+      "templateVersion": "2.6.0",
+      "description": "Skills Gate rules",
+      "tracked": true,
+      "condition": "skills_gate.enabled"
+    },
+    "rules/memory-integration.md.template": {
+      "output": ".claude/rules/memory-integration.md",
+      "templateVersion": "2.6.0",
+      "description": "Memory integration rules",
+      "tracked": true,
+      "condition": "claude_mem.enabled"
+    },
+    "memory/decisions.md.template": {
+      "output": ".claude/memory/decisions.md",
+      "templateVersion": "2.5.23",
+      "description": "Decision log",
+      "tracked": true
+    },
+    "memory/patterns.md.template": {
+      "output": ".claude/memory/patterns.md",
+      "templateVersion": "2.5.23",
+      "description": "Reusable patterns",
+      "tracked": true
+    },
+    "memory/session-log.md.template": {
+      "output": ".claude/memory/session-log.md",
+      "templateVersion": "2.5.23",
+      "description": "Session log",
+      "tracked": false
+    },
+    "claude/settings.local.json.template": {
+      "output": ".claude/settings.local.json",
+      "templateVersion": "2.5.23",
+      "description": "Local settings",
+      "tracked": true
+    },
+    "claude/settings.security.json.template": {
+      "output": ".claude/settings.json",
+      "templateVersion": "2.5.23",
+      "description": "Security settings",
+      "tracked": true
+    },
+    "sandbox-settings.json.template": {
+      "output": ".claude/settings.sandbox.json",
+      "templateVersion": "4.3.3",
+      "description": "Optional sandbox settings",
+      "tracked": false
+    },
+    "state/skills-policy.json.template": {
+      "output": ".claude/state/skills-policy.json",
+      "templateVersion": "2.5.23",
+      "description": "Skill policy",
+      "tracked": false
+    },
+    "state/skills-config.json.template": {
+      "output": ".claude/state/skills-config.json",
+      "templateVersion": "2.5.23",
+      "description": "Skill settings",
+      "tracked": false
+    },
+    ".claude-code-harness.config.yaml.template": {
+      "output": ".claude-code-harness.config.yaml",
+      "templateVersion": "4.3.3",
+      "description": "Plugin settings",
+      "tracked": true
+    },
+    "locales/ja/.claude-code-harness.config.yaml.template": {
+      "output": ".claude-code-harness.config.yaml",
+      "templateVersion": "4.3.3",
+      "description": "Plugin settings (Japanese)",
+      "tracked": true,
+      "locale": "ja"
+    },
+    ".claude-code-harness-version.template": {
+      "output": ".claude-code-harness-version",
+      "templateVersion": "2.5.23",
+      "description": "Version file",
+      "tracked": false
+    }
+  }
+}

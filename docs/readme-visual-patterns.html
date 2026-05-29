@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Harness README Visual Patterns</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14211c;
+      --muted: #5b6b63;
+      --line: #d8e1dc;
+      --paper: #fffdf8;
+      --wash: #f6f7f2;
+      --orange: #ff6a2a;
+      --green: #1f8a70;
+      --gold: #f3b343;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 44px 0 56px;
+    }
+
+    header {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 860px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .pattern {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .mock {
+      min-height: 410px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 20px 60px rgba(20, 33, 28, 0.08);
+      padding: 22px;
+      overflow: hidden;
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: var(--green);
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    .mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--orange), var(--gold));
+      box-shadow: inset 0 0 0 4px rgba(255,255,255,0.55);
+    }
+
+    .loop {
+      display: grid;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .stage {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--wash);
+      font-weight: 700;
+    }
+
+    .chip {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .cell {
+      min-height: 92px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--wash);
+      padding: 12px;
+    }
+
+    .cell strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--orange), var(--green));
+    }
+
+    .lanes {
+      display: grid;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .lane {
+      border-left: 5px solid var(--orange);
+      background: var(--wash);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-weight: 700;
+    }
+
+    .lane span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .flowline {
+      height: 42px;
+      margin: 18px auto;
+      width: 2px;
+      background: var(--line);
+      position: relative;
+    }
+
+    .flowline::after {
+      content: "";
+      position: absolute;
+      left: -5px;
+      bottom: -1px;
+      width: 12px;
+      height: 12px;
+      border-right: 2px solid var(--line);
+      border-bottom: 2px solid var(--line);
+      transform: rotate(45deg);
+    }
+
+    .approval {
+      margin-top: 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px 18px;
+      background: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>README Visual Patterns</h1>
+      <p>A. Operating Loop が選択済みです。最終画像は白背景、公式ロゴのトーン、英日別テキスト、support tier を盛らない条件で生成します。</p>
+    </header>
+
+    <section class="grid" aria-label="Visual pattern options">
+      <article class="pattern">
+        <div class="label">
+          <h2>A. Operating Loop</h2>
+          <span class="badge">Selected</span>
+        </div>
+        <div class="mock">
+          <div class="logo"><span class="mark"></span>Claude Harness</div>
+          <p>Plan. Work. Review. Ship.</p>
+          <div class="loop">
+            <div class="stage">Spec <span class="chip">unknowns</span></div>
+            <div class="stage">Plan <span class="chip">DoD</span></div>
+            <div class="stage">Work <span class="chip">TDD</span></div>
+            <div class="stage">Review <span class="chip">verdict</span></div>
+            <div class="stage">Release <span class="chip">proof</span></div>
+          </div>
+        </div>
+        <p>README hero 向け。最もプロダクトらしく、最初の印象が強い。</p>
+      </article>
+
+      <article class="pattern">
+        <div class="label">
+          <h2>B. Evidence Board</h2>
+          <span class="badge">Trust</span>
+        </div>
+        <div class="mock">
+          <div class="logo"><span class="mark"></span>Evidence</div>
+          <p>Every claim has a gate.</p>
+          <div class="board">
+            <div class="cell"><strong>Plan Source</strong><div class="bar"></div></div>
+            <div class="cell"><strong>Test Result</strong><div class="bar"></div></div>
+            <div class="cell"><strong>Review Verdict</strong><div class="bar"></div></div>
+            <div class="cell"><strong>Release Gate</strong><div class="bar"></div></div>
+          </div>
+          <div class="flowline"></div>
+          <div class="stage">not observed != absent</div>
+        </div>
+        <p>信頼・検証を強く見せる方向。レビュー/リリース説明に向く。</p>
+      </article>
+
+      <article class="pattern">
+        <div class="label">
+          <h2>C. Tool-First Map</h2>
+          <span class="badge">Onboarding</span>
+        </div>
+        <div class="mock">
+          <div class="logo"><span class="mark"></span>Start by tool</div>
+          <div class="lanes">
+            <div class="lane">Claude Code <span>supported</span></div>
+            <div class="lane">Codex CLI <span>internal-compatible</span></div>
+            <div class="lane">OpenCode <span>internal-compatible</span></div>
+            <div class="lane">Candidates <span>research only</span></div>
+          </div>
+          <div class="flowline"></div>
+          <div class="stage">setup -> spec -> plan -> work -> review</div>
+        </div>
+        <p>導入方法を強く見せる方向。情報量は多め。</p>
+      </article>
+    </section>
+
+    <section class="approval">
+      <strong>Selected:</strong>
+      A. Operating Loop を README hero の基調として採用済みです。B と C は二次 diagram の候補として残します。
+    </section>
+  </main>
+</body>
+</html>

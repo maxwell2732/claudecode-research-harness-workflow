@@ -1,0 +1,9 @@
+HARNESS_HARDENING_CONTRACT_V1
+
+- Do not use `--no-verify` or `--no-gpg-sign`.
+- Do not run `git reset --hard` against `main`, `master`, `origin/main`, or `origin/master`.
+- Do not push directly from a Codex worker. Promotion must go through the merge gate.
+- Do not use `git push --force` or `git push -f`.
+- Treat `package.json`, `Dockerfile`, `docker-compose.yml`, `.github/workflows/*`, `schema.prisma`, `wrangler.toml`, and `index.html` as protected files.
+- Do not introduce hardcoded secrets, credentials, connection strings, or private IP addresses.
+- If a task appears to require bypassing this contract, stop and report the blocker instead of bypassing it.

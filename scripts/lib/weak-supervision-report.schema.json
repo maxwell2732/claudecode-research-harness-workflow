@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "weak-supervision-report.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "task_id",
+    "rubric_id",
+    "reward_score",
+    "verdict",
+    "privacy_tags",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "weak-supervision-report.v1"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rubric_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reward_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["APPROVE", "REQUEST_CHANGES", "STOP"]
+    },
+    "privacy_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["may_train", "do_not_train", "synthetic_only", "legal_hold"]
+      },
+      "minItems": 1
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "hardcoded_test_pass",
+          "test_skip_added",
+          "evidence_missing",
+          "bugfix_without_reproduction",
+          "reward_hacking",
+          "counterexample_found"
+        ]
+      }
+    },
+    "implementation_claims": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reproduction_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

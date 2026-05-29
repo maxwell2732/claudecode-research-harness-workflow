@@ -1,0 +1,181 @@
+# Harness v4 Configuration
+# Edit this file, then run `harness sync` to generate CC plugin files.
+
+[project]
+name = "research-agent-harness"
+version = "4.12.11"
+description = "Research Agent Harness — a controlled execution environment for reproducible empirical research agents."
+homepage = "https://github.com/Chachamaru127/claude-code-harness"
+repository = "https://github.com/Chachamaru127/claude-code-harness"
+license = "MIT"
+keywords = ["claude-code", "plugin", "empirical-research", "reproducibility", "econometrics", "workflow"]
+outputStyles = "./output-styles/"
+
+[project.author]
+name = "Chachamaru"
+url = "https://github.com/Chachamaru127"
+
+[env]
+CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = "1"
+
+[safety.permissions]
+# main/master への直接 push の扱い。
+# ask: 実行前にユーザー確認（既定） / deny: 禁止 / allow: 確認なしで許可
+protectedBranchPush = "ask"
+allow = [
+  # Low-risk local development commands. Keep install, arbitrary npx/npm exec,
+  # merge/rebase, destructive git, secrets, and external sends behind ask/deny.
+  "Bash(git status:*)",
+  "Bash(git diff:*)",
+  "Bash(git log:*)",
+  "Bash(git branch:*)",
+  "Bash(git show:*)",
+  "Bash(rg:*)",
+  "Bash(npm test:*)",
+  "Bash(npm run test:*)",
+  "Bash(npm run lint:*)",
+  "Bash(npm run build:*)",
+  "Bash(bun test:*)",
+  "Bash(bun run test:*)",
+  "Bash(bun run lint:*)",
+  "Bash(bun run build:*)",
+  "Bash(pnpm test:*)",
+  "Bash(pnpm run test:*)",
+  "Bash(pnpm run lint:*)",
+  "Bash(pnpm run build:*)",
+  "Bash(yarn test:*)",
+  "Bash(yarn run test:*)",
+  "Bash(yarn run lint:*)",
+  "Bash(yarn run build:*)",
+  # Research analysis runtimes
+  "Bash(Rscript:*)",
+  "Bash(python:*)",
+  "Bash(python3:*)",
+  "Bash(stata:*)",
+  "Bash(stata-se:*)",
+  "Bash(stata-mp:*)",
+  # Read-only data inspection (used by /research-harness-audit)
+  "Bash(wc -l:*)",
+  "Bash(head:*)",
+  "Bash(file:*)",
+]
+deny = [
+  "Bash(sudo:*)",
+  "Bash(rm -rf:*)",
+  "Bash(rm -fr:*)",
+  "Bash(psql:*)",
+  "Bash(mysql:*)",
+  "Bash(mongod:*)",
+  "Bash(mongo:*)",
+  "mcp__codex__*",
+  # Research data integrity — raw data is read-only; no writes permitted under any circumstance
+  "Write(data/raw/**)",
+  "Edit(data/raw/**)",
+  "Read(./.env)",
+  "Read(./.env.*)",
+  "Read(./secrets/**)",
+  "Read(**/*.pem)",
+  "Read(**/*.key)",
+  "Read(**/*id_rsa*)",
+  "Read(**/*id_ed25519*)",
+  "Read(**/.aws/**)",
+  "Read(**/.ssh/**)",
+  "Read(**/.npmrc)",
+]
+ask = [
+  "Bash(rm -r:*)",
+  "Bash(git reset --hard:*)",
+  "Bash(git push -f:*)",
+  "Bash(git push --force:*)",
+  "Bash(git push --force-with-lease:*)",
+  "Bash(git clean -f:*)",
+  "Bash(git clean -fdx:*)",
+  "Bash(git clean -fx:*)",
+  "Bash(git rebase:*)",
+  "Bash(git merge:*)",
+  "Bash(npm install:*)",
+  "Bash(npm exec:*)",
+  "Bash(npx:*)",
+  "Bash(bun install:*)",
+  "Bash(pnpm install:*)",
+]
+
+# Optional R03 break-glass: shell writes to exact/narrow .env paths ask instead
+# of deny only when this TOML entry has a non-empty reason. R02 Write/Edit/
+# MultiEdit and hard-deny paths (.git/, secrets/, *.pem, *.key, SSH trust,
+# shell rc/profile, .claude/hooks, .husky) remain denied.
+# [[safety.guardrail.protectedPathAskList]]
+# path = ".env"
+# reason = "customer deploy env update"
+
+[safety.sandbox]
+failIfUnavailable = true
+
+[safety.sandbox.network]
+# SSOT for .claude-plugin/settings.json deniedDomains. Phase 62.1.4 baseline:
+# 3 cloud-metadata exfil endpoints + 6 paste-site/file-host endpoints.
+# Keep this aligned with templates/claude/settings.security.json.template.
+# Editing settings.json directly is denied by self-protection — update HERE
+# and run `bin/harness sync` to regenerate.
+deniedDomains = [
+  "169.254.169.254",
+  "metadata.google.internal",
+  "metadata.azure.com",
+  "pastebin.com",
+  "transfer.sh",
+  "0x0.st",
+  "paste.ee",
+  "termbin.com",
+  "ix.io",
+]
+
+[safety.sandbox.filesystem]
+denyRead = [
+  ".env",
+  ".env.*",
+  "!.env.example",
+  "secrets/**",
+  "**/*.pem",
+  "**/*.key",
+  "**/*id_rsa*",
+  "**/*id_ed25519*",
+  "**/.aws/**",
+  "**/.ssh/**",
+]
+allowRead = [
+  ".env.example",
+  ".env.sample",
+  "config/public-*",
+  "docs/**",
+]
+
+[tdd]
+adopt_todo_list_first = true
+adopt_triangulation = "guide-only"
+adopt_fake_implementation = false
+
+[tdd.enforce]
+# Local trial safe default: no behavior changes until explicitly enabled.
+enabled = false
+level = "off"                            # "off" | "central" | "max"
+hook_enabled = false                     # Only fires when level == "max".
+default_max_red_log_age_minutes = 60
+bypass_audit_required = true
+
+# Worker が commit 前に自己検証する rule セット。Worker は `worker-report.v1` の
+# self_review[] にそれぞれ {rule, verified: true, evidence: "<実コマンド出力>"} を
+# 埋めて返す。Lead は verified=false または evidence="" の rule が 1 件でもあれば
+# Reviewer を spawn せずに Worker に自動差し戻す（同一セッション内 最大 2 回、3 回目で escalate）。
+# project 固有 rule を追加したい場合は `extra_rules` 配列に追記する（default 6 とは独立）。
+# `tdd-red-evidence-attached` は [tdd.enforce].enabled = true の時だけ有効化される。
+[worker.self_review]
+default_rules = [
+  "dry-violation-none",                  # DRY 違反ゼロ（実装も import 共有）
+  "plans-cc-markers-untouched",          # Plans.md cc:* マーカー未書換
+  "all-declared-symbols-called",         # 宣言した関数/クラスは全て呼び出し経路あり
+  "dod-items-verified-with-evidence",    # DoD 各項目に検証方法と evidence
+  "no-existing-test-regression",         # 既存テスト回帰なし
+  "tdd-red-evidence-attached",           # active only when [tdd.enforce].enabled = true
+]
+extra_rules = []                         # project 固有 rule を追加する場合はここに列挙
+max_retries_before_escalate = 2          # 3 回目の差し戻しで Lead に escalate

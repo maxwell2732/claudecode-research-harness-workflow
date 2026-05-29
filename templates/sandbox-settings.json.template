@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "Sandbox 設定テンプレート - 操作感への影響を最小化しつつセキュリティを強化。docs/sandbox-allowlist-recipe.md と同期 (29 ドメイン allowlist + 9 ドメイン denylist)",
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "excludedCommands": [
+      "docker",
+      "docker-compose",
+      "watchman",
+      "systemctl",
+      "launchctl",
+      "brew services"
+    ],
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "codeload.github.com",
+        "objects.githubusercontent.com",
+        "registry.npmjs.org",
+        "api.anthropic.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "proxy.golang.org",
+        "sum.golang.org",
+        "crates.io",
+        "static.crates.io",
+        "rubygems.org",
+        "api.firecrawl.dev",
+        "firecrawl.dev",
+        "techblog.zozo.com",
+        "note.com",
+        "assets.st-note.com",
+        "zenn.dev",
+        "qiita.com",
+        "dev.to",
+        "medium.com",
+        "cdn-ak.f.st-hatena.com",
+        "engineering.dena.com",
+        "developers.cyberagent.co.jp",
+        "tech.uzabase.com",
+        "engineer.crowdworks.jp",
+        "tech.smarthr.jp"
+      ],
+      "deniedDomains": [
+        "169.254.169.254",
+        "metadata.google.internal",
+        "metadata.azure.com",
+        "pastebin.com",
+        "transfer.sh",
+        "0x0.st",
+        "paste.ee",
+        "termbin.com",
+        "ix.io"
+      ]
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(pnpm *)",
+      "Bash(yarn *)",
+      "Bash(node *)",
+      "Bash(python *)",
+      "Bash(pip *)"
+    ]
+  },
+  "_notes": {
+    "purpose": "Claude Code Permissions ドキュメントに基づく推奨 Sandbox 設定",
+    "autoAllowBashIfSandboxed": "true にすることで Sandbox 有効時の許可プロンプトを最小化",
+    "excludedCommands": "Sandbox 外で実行が必要なコマンド（ホストシステムへのアクセスが必要）",
+    "allowedDomains": "3 階層構成: 開発コア 14 (github / npm / anthropic / pypi / go / crates / rubygems) + Firecrawl 本体 2 + 代表スクレイプ対象 13 (日本/英語テックブログ)。詳細: docs/sandbox-allowlist-recipe.md",
+    "deniedDomains": "SSRF (cloud metadata endpoint) + 流出経路 (pastebin 系) の遮断。allowedDomains に含まれていても deniedDomains が優先で deny される",
+    "sync_with": "docs/sandbox-allowlist-recipe.md と数値・項目を完全一致させること。drift を放置すると user が template と recipe どちらが正かわからなくなる"
+  }
+}
