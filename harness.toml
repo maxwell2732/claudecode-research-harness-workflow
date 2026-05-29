@@ -19,8 +19,8 @@ url = "https://github.com/maxwell2732"
 CLAUDE_CODE_SUBPROCESS_ENV_SCRUB = "1"
 
 [safety.permissions]
-# main/master への直接 push の扱い。
-# ask: 実行前にユーザー確認（既定） / deny: 禁止 / allow: 確認なしで許可
+# How to handle direct pushes to main/master.
+# ask: prompt user before executing (default) / deny: block / allow: permit without confirmation
 protectedBranchPush = "ask"
 allow = [
   # Low-risk local development commands. Keep install, arbitrary npx/npm exec,
@@ -162,20 +162,20 @@ hook_enabled = false                     # Only fires when level == "max".
 default_max_red_log_age_minutes = 60
 bypass_audit_required = true
 
-# Worker が commit 前に自己検証する rule セット。Worker は `worker-report.v1` の
-# self_review[] にそれぞれ {rule, verified: true, evidence: "<実コマンド出力>"} を
-# 埋めて返す。Lead は verified=false または evidence="" の rule が 1 件でもあれば
-# Reviewer を spawn せずに Worker に自動差し戻す（同一セッション内 最大 2 回、3 回目で escalate）。
-# project 固有 rule を追加したい場合は `extra_rules` 配列に追記する（default 6 とは独立）。
-# `tdd-red-evidence-attached` は [tdd.enforce].enabled = true の時だけ有効化される。
+# Rule set that Worker self-verifies before committing. Worker fills each entry in
+# self_review[] of `worker-report.v1` with {rule, verified: true, evidence: "<command output>"}.
+# Lead auto-returns to Worker if any rule has verified=false or empty evidence
+# (max 2 retries within the same session; 3rd failure escalates to Lead).
+# Add project-specific rules to `extra_rules` (independent of the 6 defaults).
+# `tdd-red-evidence-attached` is only active when [tdd.enforce].enabled = true.
 [worker.self_review]
 default_rules = [
-  "dry-violation-none",                  # DRY 違反ゼロ（実装も import 共有）
-  "plans-cc-markers-untouched",          # Plans.md cc:* マーカー未書換
-  "all-declared-symbols-called",         # 宣言した関数/クラスは全て呼び出し経路あり
-  "dod-items-verified-with-evidence",    # DoD 各項目に検証方法と evidence
-  "no-existing-test-regression",         # 既存テスト回帰なし
-  "tdd-red-evidence-attached",           # active only when [tdd.enforce].enabled = true
+  "dry-violation-none",                  # No DRY violations (shared imports too)
+  "plans-cc-markers-untouched",          # Plans.md cc:* markers not overwritten
+  "all-declared-symbols-called",         # All declared functions/classes have call paths
+  "dod-items-verified-with-evidence",    # Each DoD item has verification method + evidence
+  "no-existing-test-regression",         # No regressions in existing tests
+  "tdd-red-evidence-attached",           # Active only when [tdd.enforce].enabled = true
 ]
-extra_rules = []                         # project 固有 rule を追加する場合はここに列挙
-max_retries_before_escalate = 2          # 3 回目の差し戻しで Lead に escalate
+extra_rules = []                         # Add project-specific rules here
+max_retries_before_escalate = 2          # 3rd return escalates to Lead

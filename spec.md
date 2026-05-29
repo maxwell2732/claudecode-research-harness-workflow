@@ -94,7 +94,7 @@ or changes product behavior, APIs, data models, permissions, billing, external
 integrations, distribution, or security posture. For those requests,
 `/harness-plan` must use TeamAgent or sub-agent perspectives when available.
 If the runtime cannot spawn sub-agents, the plan must explicitly say
-`サブエージェント未使用` and run the same checks in separated sections.
+`sub-agents-not-used` and run the same checks in separated sections.
 The plan must include `team_validation_mode`, one of
 `not_required_lightweight`, `native`, `subagent`, `manual-pass`, or
 `unavailable`. Lightweight work may use `not_required_lightweight`.
@@ -387,7 +387,7 @@ work, alongside `cc:todo`, `cc:wip`, `pm:requested`, and `pm:approved`.
 
 Backward compatibility is mandatory:
 
-- existing `cc:TODO`, `cc:WIP`, `cc:完了`, `pm:依頼中`, and `pm:確認済` rows remain
+- existing `cc:TODO`, `cc:WIP`, `cc:done`, `pm:requested`, and `pm:confirmed` rows remain
   valid input,
 - Japanese opt-in may preserve surrounding Japanese prose, but new and updated
   status marker writes still use the English marker family,
@@ -481,7 +481,7 @@ V2 does not:
 - replace `Plans.md` with `spec.md`,
 - split Fast/Gate/Release into three new primary skills,
 - make every task a heavy Gate lane task,
-- break existing `cc:TODO`, `cc:WIP`, or `cc:完了` marker compatibility,
+- break existing `cc:TODO`, `cc:WIP`, or `cc:done` marker compatibility,
 - let review auto-commit, push, PR, merge, or release,
 - treat local green checks as PR-ready or release-ready by themselves,
 - weaken release verification to save time.
