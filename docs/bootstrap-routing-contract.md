@@ -147,15 +147,15 @@ that docs name the expected workflow for common user intent.
 
 | Prompt fixture | Expected workflow | Claude SessionStart route | Codex AGENTS.md route | OpenCode AGENTS.md route |
 |---|---|---|---|---|
-| `Todoアプリを作って` / `build a todo app` | `harness-plan` | Start with planning unless an accepted plan already exists. | Route to `$harness-plan` before implementation. | Route to `harness-plan` guidance when available; otherwise manual planning. |
-| `計画して` / `plan this` | `harness-plan` | Route to planning workflow. | Route to `$harness-plan`. | Route to `harness-plan` guidance when available. |
-| `実装して` / `work on this` | `harness-work` | Route to implementation workflow. | Route to `$harness-work`. | Route to `harness-work` guidance when available. |
+| `build a todo app` | `harness-plan` | Start with planning unless an accepted plan already exists. | Route to `$harness-plan` before implementation. | Route to `harness-plan` guidance when available; otherwise manual planning. |
+| `plan this` | `harness-plan` | Route to planning workflow. | Route to `$harness-plan`. | Route to `harness-plan` guidance when available. |
+| `work on this` | `harness-work` | Route to implementation workflow. | Route to `$harness-work`. | Route to `harness-work` guidance when available. |
 | `implement all Plans.md tasks` | `breezing` | Route to team execution wrapper when multiple ready tasks exist. | Route to `$breezing` or `$harness-work all` according to ready task count. | Route to `breezing` or `harness-work` guidance when available; otherwise manual execution. |
-| `全部やって` / `breezing all` | `breezing` | Route to team execution wrapper. | Route to `$breezing`. | Route to `breezing` guidance when available. |
+| `breezing all` | `breezing` | Route to team execution wrapper. | Route to `$breezing`. | Route to `breezing` guidance when available. |
 | `review this PR` | `harness-review` | Route to independent review workflow. | Route to `$harness-review`. | Route to `harness-review` guidance when available; unsupported hosts must return `unsupported` or `manual`. |
-| `レビューして` / `review this` | `harness-review` | Route to independent review workflow. | Route to `$harness-review`. | Route to `harness-review` guidance when available. |
-| `進捗確認` / `sync status` | `harness-sync` | Route to sync workflow. | Route to `$harness-sync`. | Route to `harness-sync` guidance when available. |
-| `セットアップして` / `setup harness` | `harness-setup` | Route to setup workflow. | Route to `$harness-setup`. | Route to `harness-setup` guidance when available. |
+| `review this` | `harness-review` | Route to independent review workflow. | Route to `$harness-review`. | Route to `harness-review` guidance when available. |
+| `sync status` | `harness-sync` | Route to sync workflow. | Route to `$harness-sync`. | Route to `harness-sync` guidance when available. |
+| `setup harness` | `harness-setup` | Route to setup workflow. | Route to `$harness-setup`. | Route to `harness-setup` guidance when available. |
 
 ## Candidate And Unsupported Hosts
 

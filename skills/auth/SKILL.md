@@ -2,7 +2,6 @@
 name: auth
 description: "Explicit helper for authentication and payment implementation with Clerk, Supabase Auth, or Stripe. Do NOT load for: general UI work, database design, or non-auth features."
 description-en: "Explicit helper for authentication and payment implementation with Clerk, Supabase Auth, or Stripe. Do NOT load for: general UI work, database design, or non-auth features."
-description-ja: "Clerk、Supabase Auth、Stripe を使う認証・決済実装の明示補助スキル。一般的なUI作業、データベース設計、認証以外の機能には使わない。"
 allowed-tools: ["Read", "Write", "Edit", "Bash"]
 user-invocable: false
 disable-model-invocation: true
@@ -10,75 +9,75 @@ disable-model-invocation: true
 
 # Auth Skills
 
-認証と決済機能の実装を担当するスキル群です。
+A set of skills responsible for implementing authentication and payment features.
 
-## 機能詳細
+## Feature Details
 
-| 機能 | 詳細 |
-|------|------|
-| **認証機能** | See [references/authentication.md](${CLAUDE_SKILL_DIR}/references/authentication.md) |
-| **決済機能** | See [references/payments.md](${CLAUDE_SKILL_DIR}/references/payments.md) |
+| Feature | Details |
+|---------|---------|
+| **Authentication** | See [references/authentication.md](${CLAUDE_SKILL_DIR}/references/authentication.md) |
+| **Payments** | See [references/payments.md](${CLAUDE_SKILL_DIR}/references/payments.md) |
 
-## 実行手順
+## Execution Steps
 
-1. **品質判定ゲート**（Step 0）
-2. ユーザーのリクエストを分類(認証 or 決済)
-3. 上記の「機能詳細」から適切な参照ファイルを読む
-4. その内容に従って実装
+1. **Quality gate** (Step 0)
+2. Classify the user's request (authentication or payments)
+3. Read the appropriate reference file from "Feature Details" above
+4. Implement following its instructions
 
-### Step 0: 品質判定ゲート（セキュリティチェックリスト）
+### Step 0: Quality Gate (Security Checklist)
 
-認証・決済機能は常にセキュリティリスクが高いため、作業開始前に必ず以下を表示:
+Since authentication and payment features always carry high security risk, always display the following before starting work:
 
 ```markdown
-🔐 セキュリティチェックリスト
+🔐 Security Checklist
 
-この作業はセキュリティ上重要です。以下を確認してください：
+This work is security-critical. Please confirm the following:
 
-### 認証関連
-- [ ] パスワードはハッシュ化（bcrypt/argon2）
-- [ ] セッション管理は安全か（HTTPOnly Cookie）
-- [ ] CSRF 対策は実装されているか
-- [ ] レート制限（ブルートフォース対策）
+### Authentication
+- [ ] Passwords are hashed (bcrypt/argon2)
+- [ ] Session management is secure (HTTPOnly Cookie)
+- [ ] CSRF protection is implemented
+- [ ] Rate limiting (brute-force protection)
 
-### 決済関連
-- [ ] 機密情報（カード番号等）をサーバーに保存しない
-- [ ] Stripe/決済プロバイダの SDK を正しく使用
-- [ ] Webhook の署名検証
-- [ ] 金額改ざん防止（サーバー側で金額を確定）
+### Payments
+- [ ] Sensitive data (card numbers, etc.) is not stored on the server
+- [ ] Stripe/payment provider SDK is used correctly
+- [ ] Webhook signature verification
+- [ ] Amount tampering prevention (amount finalized server-side)
 
-### 共通
-- [ ] エラーメッセージが詳細すぎないか（情報漏洩防止）
-- [ ] ログに機密情報を出力していないか
+### Common
+- [ ] Error messages are not overly detailed (prevent information leakage)
+- [ ] Sensitive information is not written to logs
 ```
 
-### セキュリティ重要度表示
+### Security Severity Display
 
 ```markdown
-⚠️ 注意レベル: 🔴 高
+⚠️ Caution Level: 🔴 High
 
-この機能は以下のリスクがあります：
-- 認証情報の漏洩
-- 不正アクセス
-- 決済の不正操作
+This feature carries the following risks:
+- Credential exposure
+- Unauthorized access
+- Fraudulent payment manipulation
 
-専門家によるレビューを推奨します。
+Expert review is recommended.
 ```
 
-### VibeCoder 向け
+### For VibeCoder
 
 ```markdown
-🔐 安全にログイン・決済機能を作るために
+🔐 Building login and payment features safely
 
-1. **パスワードは「ハッシュ化」する**
-   - 元のパスワードを復元できない形で保存
-   - 万が一データが漏れても安全
+1. **"Hash" passwords**
+   - Store passwords in a form that cannot be reversed
+   - Safe even if data is leaked
 
-2. **カード情報はサーバーに保存しない**
-   - Stripe などの専用サービスに任せる
-   - 自分のサーバーには一切保存しない
+2. **Do not store card information on your server**
+   - Delegate to a dedicated service like Stripe
+   - Never store anything on your own server
 
-3. **エラーメッセージは曖昧に**
-   - 「パスワードが違います」ではなく「認証に失敗しました」
-   - 悪意ある人にヒントを与えない
+3. **Keep error messages vague**
+   - Use "Authentication failed" instead of "Password is incorrect"
+   - Don't give hints to malicious actors
 ```

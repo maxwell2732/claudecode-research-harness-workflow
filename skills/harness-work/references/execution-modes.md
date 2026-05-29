@@ -25,7 +25,7 @@ and validation.
 
 Use for one task. The parent session implements directly, validates, runs the
 review loop, commits unless `--no-commit` is set, and marks `Plans.md`
-`cc:完了 [hash]`.
+`cc:done [hash]`.
 
 ## Parallel
 

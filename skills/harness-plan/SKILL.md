@@ -2,7 +2,6 @@
 name: harness-plan
 description: "HAR: Research-backed, team-validated task planning, Plans.md management, progress sync. Trigger: create a plan, add tasks, update Plans.md, mark complete, check progress. Do NOT load for: implementation, review, release."
 description-en: "HAR: Research-backed, team-validated task planning, Plans.md management, progress sync. Trigger: create a plan, add tasks, update Plans.md, mark complete, check progress. Do NOT load for: implementation, review, release."
-description-ja: "HAR:調査・採点・記憶確認・TeamAgent/サブエージェント検証つきのタスク計画、Plans.md管理、進捗同期を担当。計画作って、タスク追加、Plans.md更新、完了マーク、進捗確認で起動。実装・レビュー・リリースには使わない。"
 kind: workflow
 purpose: "Maintain co-required planning output for the spec.md product contract and Plans.md task contract"
 trigger: "create a plan, add tasks, update Plans.md, check progress"
@@ -19,269 +18,269 @@ effort: medium
 
 # Harness Plan
 
-Harness の統合プランニングスキル。
-以下の3つの旧スキルを統合:
+The integrated planning skill of Harness.
+Consolidates the following 3 legacy skills:
 
-- `planning` (plan-with-agent) — アイデア → Plans.md への落とし込み
-- `plans-management` — タスク状態管理・マーカー更新
-- `sync-status` — Plans.md と実装の同期確認
+- `planning` (plan-with-agent) — converting ideas → Plans.md
+- `plans-management` — task state management and marker updates
+- `sync-status` — Plans.md and implementation sync verification
 
 ## Quick Reference
 
-| ユーザー入力 | サブコマンド | 動作 |
+| User input | Subcommand | Action |
 |------------|------------|------|
-| "計画を作って" / `/harness-plan create` | `create` | Spec delta / skip reason → Plans.md task 生成 |
-| "タスクを追加して" / `/harness-plan add` | `add` | Plans.md に新タスク追加 |
-| "完了にして" / `/harness-plan update` | `update` | タスクマーカーを cc:完了 に変更 |
-| "今どこ？" / `/harness-plan sync` | `sync` | 実装とPlans.mdを照合・同期 |
-| `/harness-sync` | `sync` | 進捗確認（独立 sync surface と同等） |
-| `/harness-plan create` | `create` | spec.md / Plans.md 二正本の計画作成 |
-| `/harness-plan list` | `list` | `plans/manifest.json` の named Plans を一覧 |
-| `/harness-plan switch <name>` | `switch` | active plan を `.claude/state/active-plan.json` に保存 |
+| "Create a plan" / `/harness-plan create` | `create` | Spec delta / skip reason → generate Plans.md tasks |
+| "Add a task" / `/harness-plan add` | `add` | Add new task to Plans.md |
+| "Mark as complete" / `/harness-plan update` | `update` | Change task marker to cc:done |
+| "Where are we?" / `/harness-plan sync` | `sync` | Cross-reference and sync implementation with Plans.md |
+| `/harness-sync` | `sync` | Progress check (equivalent to independent sync surface) |
+| `/harness-plan create` | `create` | Create plans with spec.md / Plans.md dual-source |
+| `/harness-plan list` | `list` | List named Plans from `plans/manifest.json` |
+| `/harness-plan switch <name>` | `switch` | Save active plan to `.claude/state/active-plan.json` |
 
-## Literal companion commands（CC 2.1.108+）
+## Literal companion commands (CC 2.1.108+)
 
-- `/recap`: 久しぶりに戻った時に要約を取り直してから `sync` へ入る
-- `/undo`: `/rewind` の別名。直前の plan 更新を即座に戻したい時にそのまま使う
+- `/recap`: Run sync after getting a fresh summary when you return after a break
+- `/undo`: Alias for `/rewind`. Use when you want to immediately revert the last plan update
 
-## サブコマンド詳細
+## Subcommand Details
 
-### 標準の計画品質契約
+### Standard planning quality contract
 
 See [references/planning-quality.md](${CLAUDE_SKILL_DIR}/references/planning-quality.md)
 
-`harness-plan` は、spec.md product contract and Plans.md task contract の co-required planning output を作る planning surface である。
-precedence は `spec.md > sub-spec > Plans.md` のまま維持する。
-Plans.md は task ledger、root `spec.md` は product contract であり、上下関係は崩さない。
-渡された情報をそのまま Plans.md に落とさない。
-計画作成や大きな task 追加では、最新情報・既存仕様・記憶・TeamAgent / サブエージェントによる複数視点の議論を確認し、
-このプロダクトに取り入れるべき要素だけを task contract に変換する。
-`/harness-plan create` は `Spec delta` または `Spec skip reason` と `Plans.md` task 生成をセットで返す。
-出力には必ず `Spec delta` または `Spec skip reason` を含める。
-`Spec delta` / `Spec skip reason` は Harness が生成し、consumer は承認・修正だけ行う。
+`harness-plan` is a planning surface that produces co-required planning output of spec.md product contract and Plans.md task contract.
+Precedence remains `spec.md > sub-spec > Plans.md`.
+Plans.md is a task ledger; root `spec.md` is a product contract; the hierarchy must not be broken.
+Do not convert provided information directly into Plans.md.
+For plan creation and significant task additions, verify the latest information, existing specifications, memory, and TeamAgent / sub-agent multi-perspective discussions,
+and only convert elements worth incorporating into this product into task contracts.
+`/harness-plan create` returns `Spec delta` or `Spec skip reason` paired with `Plans.md` task generation.
+Output must always include `Spec delta` or `Spec skip reason`.
+Harness generates `Spec delta` / `Spec skip reason`; the consumer only approves or revises.
 
 **Non-trivial planning gate**:
 
-単発・軽微タスクでない planning は、TeamAgent またはサブエージェント前提で扱う。
-ここでの non-trivial は、複数 task / 複数 file / 複数 session / product behavior / API / data model / 権限 / 課金 / 外部連携 / 配布面 / セキュリティに影響する依頼を指す。
-Task tool が使える場合は Product / Architecture / Security / QA / Skeptic の独立視点を走らせる。
-使えない場合は `サブエージェント未使用` と明示し、同じ観点を単独で分けて評価する。
+Planning that is not single-instance or lightweight is treated as requiring TeamAgent or sub-agents.
+Non-trivial here refers to requests affecting multiple tasks / multiple files / multiple sessions / product behavior / API / data model / permissions / billing / external integrations / distribution surfaces / security.
+If the Task tool is available, run independent perspectives for Product / Architecture / Security / QA / Skeptic.
+If unavailable, explicitly state "sub-agent not used" and evaluate the same perspectives separately.
 
-non-trivial planning の出力には、次の検証を必ず含める。
+Non-trivial planning output must always include the following verifications.
 
 - `team_validation_mode`: `not_required_lightweight` / `native` / `subagent` / `manual-pass` / `unavailable`
-- `spec.md` / sub-spec / `Plans.md` の整合性
-- harness-mem / harness-recall / repo memory による車輪の再発明防止確認
-- プロダクト目的から外れていないか
-- セキュリティ、権限、秘密情報、サプライチェーンに問題がないか
-- lint / formatter baseline があるか。source code changes を含む plan で未設定なら、実装 task の前に setup task を置く
-- ちゃんと動く計画か。つまり test / smoke / CI / review / release gate が task DoD に落ちているか
+- Consistency of `spec.md` / sub-spec / `Plans.md`
+- Wheel-reinvention prevention check via harness-mem / harness-recall / repo memory
+- Not deviating from the product purpose
+- No issues with security, permissions, secrets, or supply chain
+- Whether lint / formatter baseline exists; if a plan with source code changes has none configured, place a setup task before implementation tasks
+- Whether the plan actually works — i.e., whether test / smoke / CI / review / release gates are included in task DoD
 
-軽量 task は `team_validation_mode: not_required_lightweight` でよい。
-non-trivial planning は `native` / `subagent` / `manual-pass` のいずれかを使う。
-`unavailable` のまま Required にしてはいけない。
-Product / Architecture / Security / QA / Skeptic は検証 perspective であり、agent_type 名ではない。
-利用可能な TeamAgent / Task サブエージェントに perspective として依頼し、任意 agent spawn を要求しない。
-Security gate は秘密情報の実読取を要求しない。
-`.env` や secret の read が必要になる場合は Risk Gate として止め、許可された既存 guard / evidence で確認する。
+Use `team_validation_mode: not_required_lightweight` for lightweight tasks.
+For non-trivial planning, use one of `native` / `subagent` / `manual-pass`.
+Must not leave it as `unavailable` and make it Required.
+Product / Architecture / Security / QA / Skeptic are verification perspectives, not agent_type names.
+Request them as perspectives from available TeamAgent / Task sub-agents; do not require arbitrary agent spawning.
+The Security gate does not require actual reading of secrets.
+If reading `.env` or secrets becomes necessary, stop at a Risk Gate and verify using allowed existing guards / evidence.
 
-**適用する場面**:
+**When to apply**:
 
-- `create` で新しい計画を作る
-- `add` で product behavior / API / 権限 / 課金 / 外部連携 / 配布面に影響する task を足す
-- ユーザーが外部プロダクト、競合、仕様案、改善案、比較材料を渡した
-- 既存仕様や過去判断との衝突リスクがある
+- Creating a new plan with `create`
+- Adding tasks with `add` that affect product behavior / API / permissions / billing / external integrations / distribution surfaces
+- User has provided external products, competitors, specification proposals, improvement ideas, or comparison materials
+- There is a risk of conflict with existing specifications or past decisions
 
-**軽く扱ってよい場面**:
+**When to treat lightly**:
 
-- marker 更新だけの `update`
-- status 照合だけの `sync`
-- typo、format、README/CHANGELOG のみ
-- 既存 spec とテストで正解が固定されている狭い変更
+- `update` with only marker updates
+- `sync` with only status reconciliation
+- typo, format, README/CHANGELOG only
+- Narrow changes where the correct answer is fixed by existing spec and tests
 
-**品質フロー**:
-1. 入力情報を分解し、評価対象・採点軸・不確かな事実を明示する
-2. 最新情報を取得する。外部事実は WebSearch / 公式ドキュメント / 一次情報を優先し、重要点は複数ソースでクロスチェックする
-3. 既存仕様・root `spec.md`・Plans.md・README・docs・CLAUDE.md・関連 skill を確認する
-4. harness-mem / harness-recall / `.claude/agent-memory/` / `.claude/state/` など、利用可能な記憶面を project-scoped で確認する
-5. non-trivial planning では TeamAgent / Task サブエージェントを使い、Product / Architecture / Security / QA / Skeptic など異なる視点で独立レビューする
-6. source code changes を含む plan では lint / formatter baseline を確認し、未設定なら setup task を先行させる
-7. 中立的な採点レビューを出し、Required / Recommended / Optional / Reject に分類する
-8. `$easy` 形式で、提案内容・理由・どうなるのかを報告する
-9. 採用する案だけを root `spec.md` / Plans.md / test task へ落とし込む
+**Quality flow**:
+1. Decompose input, clearly state evaluation targets, scoring axes, and uncertain facts
+2. Get latest information. Prioritize WebSearch / official docs / primary sources for external facts; cross-check important points against multiple sources
+3. Check existing specifications, root `spec.md`, Plans.md, README, docs, CLAUDE.md, related skills
+4. Check available memory surfaces project-scoped: harness-mem / harness-recall / `.claude/agent-memory/` / `.claude/state/`, etc.
+5. For non-trivial planning, use TeamAgent / Task sub-agents for independent review from different perspectives such as Product / Architecture / Security / QA / Skeptic
+6. For plans with source code changes, check lint / formatter baseline; if not configured, add setup task first
+7. Output neutral scoring review and classify as Required / Recommended / Optional / Reject
+8. Report proposal content, reason, and what changes in `$easy` format
+9. Incorporate only adopted proposals into root `spec.md` / Plans.md / test tasks
 
-### create — 計画作成
+### create — Plan creation
 
 See [references/create.md](${CLAUDE_SKILL_DIR}/references/create.md)
 
-アイデア・要件をヒアリングし、実行可能な Plans.md を生成する。
+Interview for ideas and requirements, then generate an actionable Plans.md.
 
-**フロー**:
-1. 会話コンテキスト確認（直前の議論から抽出 or 新規ヒアリング）
-2. 何を作るか聞く（max 3問）
-3. **計画品質チェック**（最新情報、既存仕様、記憶、TeamAgent / サブエージェント複数視点レビュー、採点）
-4. 技術調査（WebSearch）
-5. 機能リスト抽出
-6. **spec.md / Plans.md 二正本チェック**（Spec delta または Spec skip reason + Plans.md task）
-7. 優先度マトリクス（Required / Recommended / Optional / Reject）
-8. TDD 採用判断（テスト設計）
-9. Plans.md 生成（`cc:TODO` マーカー付き）
-10. 次のアクション案内
+**Flow**:
+1. Check conversation context (extract from preceding discussion or new interview)
+2. Ask what to build (max 3 questions)
+3. **Planning quality check** (latest information, existing specs, memory, TeamAgent / sub-agent multi-perspective review, scoring)
+4. Technical research (WebSearch)
+5. Feature list extraction
+6. **spec.md / Plans.md dual-source check** (Spec delta or Spec skip reason + Plans.md tasks)
+7. Priority matrix (Required / Recommended / Optional / Reject)
+8. TDD adoption decision (test design)
+9. Generate Plans.md (with `cc:TODO` markers)
+10. Next action guidance
 
-### spec.md / Plans.md 二正本チェック（デフォルト）
+### spec.md / Plans.md dual-source check (default)
 
-Plans.md は「やるべきこと」の task contract、root `spec.md` は「何が正しいか」の product contract として扱う。
-co-required planning output は両方の出力を必須にするという意味であり、precedence は `spec.md > sub-spec > Plans.md` のまま維持する。
-実装がぶれる可能性がある時は、Plans.md 生成前に root `spec.md` を更新する。
-`create` と product-impacting `add` は毎回 root `spec.md` を読む。
+Plans.md is treated as the task contract for "what needs to be done"; root `spec.md` is treated as the product contract for "what is correct."
+Co-required planning output means making both outputs required; precedence remains `spec.md > sub-spec > Plans.md`.
+When implementation is likely to drift, update root `spec.md` before generating Plans.md.
+`create` and product-impacting `add` always read root `spec.md`.
 
-優先する保存先:
+Priority for storage location:
 
-1. root `spec.md`
-2. consumer repo に root `spec.md` がない時だけ、既存の project spec / architecture / product compass
-3. consumer repo に root `spec.md` がない時だけ、`docs/spec/00-project-spec.md`
-4. 既存規約がある repo では、その規約に沿った spec path
+1. Root `spec.md`
+2. Only when consumer repo has no root `spec.md`: existing project spec / architecture / product compass
+3. Only when consumer repo has no root `spec.md`: `docs/spec/00-project-spec.md`
+4. For repos with existing conventions, follow the spec path per those conventions
 
-作成/更新が必要な条件:
+Conditions requiring creation/update:
 
-- ユーザーに見える振る舞い、API、データモデル、権限、課金、外部連携を決める task
-- 複数の実装方針があり、選び方で product behavior が変わる task
-- 過去または今回の会話で「仕様が曖昧で実装がぶれた」兆候がある task
-- Plans.md には作業内容があるが、project としての正解条件が安定文書にない task
+- Tasks that decide user-visible behavior, API, data model, permissions, billing, or external integrations
+- Tasks where multiple implementation policies exist and the choice changes product behavior
+- Tasks where "spec ambiguity caused implementation drift" is evident in past or current conversations
+- Tasks where the work content is in Plans.md but the project's correct conditions are not in a stable document
 
-不要な条件:
+Conditions not requiring it:
 
-- typo、format、dependency bump、README/CHANGELOG のみ
-- 動作変更なしの狭い refactor
-- 既存 spec とテストで正解が十分に固定されている修正
+- typo, format, dependency bump, README/CHANGELOG only
+- Narrow refactor without behavior changes
+- Fixes where the correct answer is sufficiently fixed by existing spec and tests
 
-出力契約:
+Output contract:
 
-- `Spec delta`: product contract を更新する時に、対象 spec path と変更点を書く
-- `Spec skip reason`: product contract を更新しない時に、理由を書く
-- `Spec delta` / `Spec skip reason` は Harness が生成し、consumer は承認・修正だけ行う
-- docs-only / mechanical task でも `Spec skip reason` を task context / sprint contract に残す
-- missing search result、unavailable memory、未読ファイルを absent と断定しない。`not_observed != absent`
-- ユーザーに spec を一から書かせない。agent が既存 spec と入力から最小 delta を作り、曖昧な時だけ判断分岐を出す
+- `Spec delta`: When updating the product contract, write the target spec path and what changes
+- `Spec skip reason`: When not updating the product contract, write the reason
+- Harness generates `Spec delta` / `Spec skip reason`; the consumer only approves or revises
+- Leave `Spec skip reason` in task context / sprint contract even for docs-only / mechanical tasks
+- Do not assert absent for missing search results, unavailable memory, or unread files. `not_observed != absent`
+- Do not have the user write the spec from scratch. The agent creates the minimum delta from existing spec and input, only presenting decision branches when ambiguous
 
-参照:
+Reference:
 
 - `docs/plans/spec-ssot.md`
 
-### create 完了時のセッション起動案内（必須）
+### Session launch guidance after create (required)
 
-`create` が終わったら、説明だけで終わらせず、**新しいセッションの起動コマンド** と
-**起動後にそのまま入れる最初の指示プロンプト** をセットで案内する。
+After `create` completes, do not end with just an explanation; always provide the **new session launch command** and
+**the first instruction prompt to enter right after launch** as a set.
 
-優先順位は次の通り:
+Priority order:
 
-1. 未完了タスクが 1 件だけ、または最初の 1 件だけ始めるのが自然
-   - 起動コマンド: `claude`
-   - 最初の入力: `/harness-work <task番号>`
-2. 依存の薄いタスクが複数あり、まとめて進めるのが自然
-   - 起動コマンド: `claude`
-   - 最初の入力: `/breezing all`
-   - 代替: `/harness-work all`
-3. 長時間実行や再入が前提
-   - 起動コマンド: `ENABLE_PROMPT_CACHING_1H=1 claude`
-   - 最初の入力: `/harness-loop all`
-   - 代替: `/breezing all`
+1. Only 1 incomplete task, or natural to start with just the first one
+   - Launch command: `claude`
+   - First input: `/harness-work <task number>`
+2. Multiple tasks with loose dependencies, natural to advance together
+   - Launch command: `claude`
+   - First input: `/breezing all`
+   - Alternative: `/harness-work all`
+3. Long-running execution or re-entry required
+   - Launch command: `ENABLE_PROMPT_CACHING_1H=1 claude`
+   - First input: `/harness-loop all`
+   - Alternative: `/breezing all`
 
-最低でも次の 3 行を含める:
+Include at least these 3 lines:
 
-- `新しいセッションの起動コマンド:`
-- `起動後の最初の入力:`
-- `向いている場面:`
+- `New session launch command:`
+- `First input after launch:`
+- `Suited for:`
 
-例:
-
-```text
-新しいセッションの起動コマンド: claude
-起動後の最初の入力: /breezing all
-向いている場面: Phase 1 の task が複数あり、まとめて進めるほうが自然なため
-```
-
-長時間系を勧める場合は、Claude Code セッション起動コマンドも併記する:
+Example:
 
 ```text
-新しいセッションの起動コマンド: ENABLE_PROMPT_CACHING_1H=1 claude
-起動後の最初の入力: /harness-loop all
-向いている場面: 5 分を超える待機や resume をまたぐ長時間タスクのため
+New session launch command: claude
+First input after launch: /breezing all
+Suited for: Phase 1 has multiple tasks and advancing them together is most natural
 ```
 
-補足:
+When recommending long-running mode, also include the Claude Code session launch command:
 
-- `scripts/claude-longrun.sh` はこのリポジトリの開発補助スクリプトで、plugin install 後の consumer 環境には配布されない
-- そのため、consumer 向け案内では常に `ENABLE_PROMPT_CACHING_1H=1 claude` の 1 行コマンドを優先する
-- リポジトリ開発中だけ同等のラッパーを使いたい場合、`bash scripts/claude-longrun.sh` はローカル checkout 上では利用してよい
-
-**CI モード** (`--ci`):
-ヒアリングなし。既存の Plans.md をそのまま利用してタスク分解のみ行う。
-
-### add — タスク追加
-
-Plans.md に新しいタスクを追加する。
-product-impacting な追加では、上の「spec.md / Plans.md 二正本チェック」に従い `Spec delta` または `Spec skip reason` も出力する。
-
-```
-/harness-plan add タスク名: 詳細説明 [--phase フェーズ番号]
+```text
+New session launch command: ENABLE_PROMPT_CACHING_1H=1 claude
+First input after launch: /harness-loop all
+Suited for: Long-running tasks where waits exceeding 5 minutes or resumptions across sessions are likely
 ```
 
-タスクは `cc:TODO` マーカーで追加される。
+Note:
 
-### update — マーカー更新
+- `scripts/claude-longrun.sh` is a development helper script for this repository and is not distributed to consumer environments after plugin install
+- Therefore, for consumer-facing guidance, always prioritize the single-line command `ENABLE_PROMPT_CACHING_1H=1 claude`
+- When in a local checkout and you want to use an equivalent wrapper only during repository development, `bash scripts/claude-longrun.sh` may be used
 
-タスクのステータスマーカーを変更する。
+**CI mode** (`--ci`):
+No interview. Use existing Plans.md as-is and only perform task decomposition.
+
+### add — Add task
+
+Add a new task to Plans.md.
+For product-impacting additions, output `Spec delta` or `Spec skip reason` following the "spec.md / Plans.md dual-source check" above.
 
 ```
-/harness-plan update [タスク名|タスク番号] [WIP|完了|blocked]
+/harness-plan add task name: detailed description [--phase phase number]
 ```
 
-マーカー対応表:
+Tasks are added with the `cc:TODO` marker.
 
-| コマンド | マーカー |
+### update — Marker update
+
+Change task status markers.
+
+```
+/harness-plan update [task name|task number] [WIP|done|blocked]
+```
+
+Marker mapping:
+
+| Command | Marker |
 |---------|---------|
 | `WIP` | `cc:WIP` |
-| `完了` / `done` | `cc:完了` |
+| `done` / `complete` | `cc:done` |
 | `blocked` | `blocked` |
 | `TODO` | `cc:TODO` |
 
-### sync — 進捗同期
+### sync — Progress sync
 
-実装状況と Plans.md を照合し、差分を検出・更新する。
+Cross-reference implementation status with Plans.md, detect differences, and update.
 
 See [references/sync.md](${CLAUDE_SKILL_DIR}/references/sync.md)
 
-**フロー**:
-1. Plans.md の現状取得
-2. Plans.md フォーマット検出（v1: 3 カラム / v2: 5 カラム）
-3. git status / git log から実装状況取得
-4. エージェントトレース確認（`.claude/state/agent-trace.jsonl`）
-5. Plans.md と実装の差分検出
-6. 未更新マーカーの自動修正提案
-7. 次のアクション提示
+**Flow**:
+1. Get current state of Plans.md
+2. Detect Plans.md format (v1: 3 columns / v2: 5 columns)
+3. Get implementation status from git status / git log
+4. Check agent trace (`.claude/state/agent-trace.jsonl`)
+5. Detect differences between Plans.md and implementation
+6. Propose auto-fix for outdated markers
+7. Present next actions
 
-**レトロスペクティブ**（デフォルト ON）:
-`cc:完了` タスクが 1 件以上あれば自動的に振り返りを実行する。
-見積もり精度、ブロック原因パターン、スコープ変動を分析し、学びを記録。
-`sync --no-retro` で明示的にスキップ可能。
+**Retrospective** (default ON):
+Automatically run a retrospective if there is at least 1 `cc:done` task.
+Analyze estimate accuracy, block cause patterns, and scope fluctuation; record learnings.
+Can be explicitly skipped with `sync --no-retro`.
 
 ### team mode / issue bridge
 
-Plans.md は正本のまま維持し、GitHub Issue 連携は opt-in の team mode だけで使う。
+Keep Plans.md as the source of truth; use GitHub Issue integration only in opt-in team mode.
 
-- solo 開発では bridge を使わない
-- team mode は tracking issue を 1 つ作り、その配下に task ごとの sub-issue payload を dry-run で生成する
-- `scripts/plans-issue-bridge.sh` は実際に GitHub を更新せず、常に dry-run の payload を返す
-- Plans.md への変更はこの bridge では行わない
+- Do not use bridge in solo development
+- Team mode creates one tracking issue and generates sub-issue payloads per task in dry-run
+- `scripts/plans-issue-bridge.sh` never actually updates GitHub; always returns dry-run payloads
+- This bridge does not modify Plans.md
 
-参照:
+Reference:
 
 - `docs/plans/team-mode.md`
 
 ### named Plans
 
-複数の Plans.md を使う場合は `plans/manifest.json` を正本にして、名前で選択する。
+When using multiple Plans.md, use `plans/manifest.json` as the source of truth and select by name.
 
 ```bash
 scripts/plan-registry.sh list
@@ -290,87 +289,87 @@ scripts/plans-issue-bridge.sh --plan roadmap --format markdown
 node scripts/generate-sprint-contract.js --plan roadmap 9.1.1
 ```
 
-運用ルール:
+Operating rules:
 
-- 1 run では 1 つの named plan だけを使う
-- long-running / CI / issue bridge では active pointer に頼らず `--plan <name>` を渡す
-- manifest path は project root 相対のみ。絶対パス、`..`、repo 外 symlink は拒否される
+- Only use one named plan per run
+- Pass `--plan <name>` explicitly for long-running / CI / issue bridge rather than relying on the active pointer
+- Manifest path is project root relative only. Absolute paths, `..`, and out-of-repo symlinks are rejected
 
-参照:
+Reference:
 
 - `docs/plans/named-plans.md`
 
-## Plans.md フォーマット規約
+## Plans.md Format Convention
 
-### フォーマット
+### Format
 
 ```markdown
-# [プロジェクト名] Plans.md
+# [Project name] Plans.md
 
-作成日: YYYY-MM-DD
+Created: YYYY-MM-DD
 
 ---
 
-## Phase N: フェーズ名
+## Phase N: Phase name
 
-| Task | 内容 | DoD | Depends | Status |
+| Task | Content | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| N.1  | 説明 | テスト通過 | - | cc:TODO |
-| N.2  | 説明 | lint エラー 0 | N.1 | cc:WIP |
-| N.3  | 説明 | マイグレーション実行可能 | N.1, N.2 | cc:完了 |
+| N.1  | Description | Tests pass | - | cc:TODO |
+| N.2  | Description | lint errors 0 | N.1 | cc:WIP |
+| N.3  | Description | Migration executable | N.1, N.2 | cc:done |
 ```
 
-**DoD（Definition of Done）**: 検証可能な完了条件を 1 行で記述。「いい感じ」「ちゃんと動く」は禁止。Yes/No で判定できる形にする。
+**DoD (Definition of Done)**: Write the verifiable completion condition in one line. "Looks good" or "works properly" are prohibited. Must be determinable Yes/No.
 
-**Depends**: タスク間の依存関係。`-`（依存なし）、タスク番号（`N.1`）、カンマ区切り（`N.1, N.2`）、フェーズ依存（`Phase N`）。
+**Depends**: Task dependencies. `-` (no dependency), task number (`N.1`), comma-separated (`N.1, N.2`), phase dependency (`Phase N`).
 
 ### TDD tags
 
-Plans.md の task には、TDD 判定を明示するタグを内容または DoD に書ける。
+Tasks in Plans.md can have TDD judgment tags in their content or DoD.
 
-| タグ | 意味 | `tdd_required` 推論 |
+| Tag | Meaning | `tdd_required` inference |
 |------|------|--------------------|
-| `[tdd:required]` | この task は先に失敗テストを書く必要がある | `true` |
-| `[tdd:skip:<reason>]` | この task は理由つきで TDD を省略する | `false`, `skip_tdd_reason=<reason>` |
+| `[tdd:required]` | This task must write failing tests first | `true` |
+| `[tdd:skip:<reason>]` | This task skips TDD with a reason | `false`, `skip_tdd_reason=<reason>` |
 
-`<reason>` は空にしない。
-例: `[tdd:skip:docs-only]`、`[tdd:skip:no-test-framework-detected]`。
+Do not leave `<reason>` empty.
+Examples: `[tdd:skip:docs-only]`, `[tdd:skip:no-test-framework-detected]`.
 
-タグがない場合の `tdd_required` は次の順で推論する。
+When no tag is present, infer `tdd_required` in this order:
 
 1. Plans.md tag: `[tdd:required]` / `[tdd:skip:<reason>]`
-2. files: `src/`, `app/`, `cmd/`, `lib/`, `pkg/`, `internal/`, `go/` など source 実装を含むなら required
-3. scaffolder 推論: docs-only や test framework なしなら skip reason を付けて not required
+2. Files: required if task includes source implementations under `src/`, `app/`, `cmd/`, `lib/`, `pkg/`, `internal/`, `go/`, etc.
+3. Scaffolder inference: not required with skip reason if docs-only or no test framework detected
 
 ### optional briefs / manifest
 
-`harness-plan create` は、必要なときだけ brief を付ける。
+`harness-plan create` only attaches a brief when needed.
 
-- project spec SSOT は project 全体の正解条件を固定する文書で、必要時だけ作る
-- UI を含むタスクでは `design brief`
-- API を含むタスクでは `contract brief`
-- brief は「何を作るか」を短く固定する補助資料で、Plans.md や spec SSOT を置き換えない
-- skill frontmatter の一覧は `scripts/generate-skill-manifest.sh` で machine-readable JSON にできる
+- project spec SSOT is a document that fixes the correct conditions for the entire project, created only when needed
+- `design brief` for tasks with UI
+- `contract brief` for tasks with API
+- A brief is a short supplementary document that fixes "what to build"; it does not replace Plans.md or spec SSOT
+- The list of skill frontmatter can be generated as machine-readable JSON with `scripts/generate-skill-manifest.sh`
 
-参照:
+References:
 
 - `docs/plans/briefs-manifest.md`
 - `docs/plans/spec-ssot.md`
 
-### マーカー一覧
+### Marker list
 
-| マーカー | 意味 |
+| Marker | Meaning |
 |---------|------|
-| `pm:依頼中` | PM から依頼済み |
-| `cc:TODO` | 未着手 |
-| `cc:WIP` | 作業中 |
-| `cc:完了` | Worker 作業完了 |
-| `pm:確認済` | PM レビュー完了 |
-| `blocked` | ブロック中（理由を必ず記載） |
+| `pm:requested` | Requested by PM |
+| `cc:TODO` | Not started |
+| `cc:WIP` | In progress |
+| `cc:done` | Worker work complete |
+| `pm:confirmed` | PM review complete |
+| `blocked` | Blocked (always include reason) |
 
-## 関連スキル
+## Related Skills
 
-- `harness-sync` — 実装と Plans.md を同期する
-- `harness-work` — 計画したタスクを実装する
-- `harness-review` — 実装のレビュー
-- `harness-setup` — プロジェクト初期化
+- `harness-sync` — Sync implementation with Plans.md
+- `harness-work` — Implement planned tasks
+- `harness-review` — Review implementations
+- `harness-setup` — Project initialization

@@ -2,7 +2,6 @@
 name: ci
 description: "CI red? Call us. Pipeline fire brigade deploys. Use when user mentions CI failures, build errors, test failures, or pipeline issues. Do NOT load for: local builds, standard implementation work, reviews, or setup."
 description-en: "CI red? Call us. Pipeline fire brigade deploys. Use when user mentions CI failures, build errors, test failures, or pipeline issues. Do NOT load for: local builds, standard implementation work, reviews, or setup."
-description-ja: "CIが赤くなったら呼んで。パイプライン消防隊、出動します。Use when user mentions CI failures, build errors, test failures, or pipeline issues. Do NOT load for: local builds, standard implementation work, reviews, or setup."
 allowed-tools: ["Read", "Grep", "Bash", "Task", "Monitor"]
 user-invocable: true
 context: fork
@@ -11,186 +10,186 @@ argument-hint: "[analyze|fix|run]"
 
 # CI/CD Skills
 
-CI/CD パイプラインに関する問題を解決するスキル群です。
+A set of skills for resolving CI/CD pipeline issues.
 
 ---
 
-## 発動条件
+## Trigger Conditions
 
-- 「CIが落ちた」「GitHub Actionsが失敗」
-- 「ビルドエラー」「テストが通らない」
-- 「パイプラインを直して」
-
----
-
-## 機能詳細
-
-| 機能 | 詳細 | トリガー |
-|------|------|----------|
-| **失敗分析** | See [references/analyzing-failures.md](${CLAUDE_SKILL_DIR}/references/analyzing-failures.md) | 「ログを見て」「原因を調べて」 |
-| **テスト修正** | See [references/fixing-tests.md](${CLAUDE_SKILL_DIR}/references/fixing-tests.md) | 「テストを直して」「修正案を出して」 |
+- "CI failed", "GitHub Actions failure"
+- "Build error", "Tests won't pass"
+- "Fix the pipeline"
 
 ---
 
-## 実行手順
+## Feature Details
 
-1. **テスト vs 実装判定**（Step 0）
-2. ユーザーの意図を分類（分析 or 修正）
-3. 複雑度を判定（下記参照）
-4. 上記の「機能詳細」から適切な参照ファイルを読む、または ci-cd-fixer サブエージェント起動
-5. 結果を確認し、必要に応じて再実行
+| Feature | Details | Trigger |
+|---------|---------|---------|
+| **Failure Analysis** | See [references/analyzing-failures.md](${CLAUDE_SKILL_DIR}/references/analyzing-failures.md) | "Read the log", "Investigate the cause" |
+| **Test Fixing** | See [references/fixing-tests.md](${CLAUDE_SKILL_DIR}/references/fixing-tests.md) | "Fix the test", "Suggest a fix" |
 
-### Step 0: テスト vs 実装判定（品質判定ゲート）
+---
 
-CI 失敗時、まず原因の切り分けを行う:
+## Execution Steps
+
+1. **Test vs. Implementation determination** (Step 0)
+2. Classify user intent (analyze or fix)
+3. Assess complexity (see below)
+4. Read the appropriate reference file from "Feature Details" above, or launch the ci-cd-fixer sub-agent
+5. Review results and re-run if necessary
+
+### Step 0: Test vs. Implementation Determination (Quality Gate)
+
+When a CI failure occurs, first triage the cause:
 
 ```
-CI 失敗報告
+CI failure reported
     ↓
 ┌─────────────────────────────────────────┐
-│           テスト vs 実装判定             │
+│       Test vs. Implementation           │
 ├─────────────────────────────────────────┤
-│  エラーの原因を分析:                    │
-│  ├── 実装が間違い → 実装を修正          │
-│  ├── テストが古い → ユーザーに確認      │
-│  └── 環境問題 → 環境修正                │
+│  Analyze the cause:                     │
+│  ├── Implementation is wrong → Fix impl │
+│  ├── Test is outdated → Confirm w/ user │
+│  └── Environment issue → Fix env        │
 └─────────────────────────────────────────┘
 ```
 
-#### 禁止事項（改ざん防止）
+#### Prohibited Actions (Anti-tampering)
 
 ```markdown
-⚠️ CI 失敗時の禁止事項
+⚠️ Prohibited actions when CI fails
 
-以下の「解決策」は禁止です：
+The following "solutions" are prohibited:
 
-| 禁止 | 例 | 正しい対応 |
-|------|-----|-----------|
-| テスト skip 化 | `it.skip(...)` | 実装を修正 |
-| アサーション削除 | `expect()` を消す | 期待値を確認 |
-| CI チェック迂回 | `continue-on-error` | 根本原因修正 |
-| lint ルール緩和 | `eslint-disable` | コードを修正 |
+| Prohibited | Example | Correct approach |
+|------------|---------|------------------|
+| Skipping tests | `it.skip(...)` | Fix the implementation |
+| Removing assertions | Delete `expect()` | Verify expected values |
+| Bypassing CI checks | `continue-on-error` | Fix the root cause |
+| Relaxing lint rules | `eslint-disable` | Fix the code |
 ```
 
-#### 判断フロー
+#### Decision Flow
 
 ```markdown
-🔴 CI が失敗しています
+🔴 CI is failing
 
-**判断が必要です**:
+**A decision is needed**:
 
-1. **実装が間違い** → 実装を修正 ✅
-2. **テストの期待値が古い** → ユーザーに確認を求める
-3. **環境の問題** → 環境設定を修正
+1. **Implementation is wrong** → Fix the implementation ✅
+2. **Test expected value is outdated** → Ask user for confirmation
+3. **Environment issue** → Fix the environment configuration
 
-⚠️ テストの改ざん（skip化、アサーション削除）は禁止です
+⚠️ Tampering with tests (skipping, removing assertions) is prohibited
 
-どれに該当しますか？
+Which applies here?
 ```
 
-#### 承認が必要な場合
+#### When Approval Is Needed
 
-テスト/設定の変更がやむを得ない場合:
+If changes to tests/configuration are unavoidable:
 
 ```markdown
-## 🚨 テスト/設定変更の承認リクエスト
+## 🚨 Approval Request for Test/Config Change
 
-### 理由
-[なぜこの変更が必要か]
+### Reason
+[Why this change is necessary]
 
-### 変更内容
-[差分]
+### Change Content
+[Diff]
 
-### 代替案の検討
-- [ ] 実装の修正で解決できないか確認した
+### Alternatives Considered
+- [ ] Confirmed that fixing the implementation cannot resolve this
 
-ユーザーの明示的な承認を待つ
+Waiting for explicit user approval
 ```
 
-### Git log 拡張フラグの活用（CC 2.1.49+）
+### Using Extended Git Log Flags (CC 2.1.49+)
 
-CI 失敗時の原因コミット特定に構造化ログを活用します。
+Use structured logs to identify the commit that caused the CI failure.
 
-#### 原因コミットの特定
+#### Identifying the Culprit Commit
 
 ```bash
-# 構造化フォーマットでコミット分析
+# Analyze commits with structured format
 git log --format="%h|%s|%an|%ad" --date=short -10
 
-# トポロジカル順序で時系列分析
+# Analyze chronologically with topological order
 git log --topo-order --oneline -20
 
-# 変更ファイルと原因の紐付け
+# Link changed files to causes
 git log --raw --oneline -5
 ```
 
-#### 主な活用場面
+#### Key Use Cases
 
-| 用途 | フラグ | 効果 |
-|------|--------|------|
-| **失敗原因の特定** | `--format="%h|%s"` | コミット一覧の構造化 |
-| **時系列での追跡** | `--topo-order` | マージ順序を考慮した追跡 |
-| **変更影響の把握** | `--raw` | ファイル変更の詳細表示 |
-| **マージ除外分析** | `--cherry-pick --no-merges` | 実コミットのみを抽出 |
+| Use | Flag | Effect |
+|-----|------|--------|
+| **Identify failure cause** | `--format="%h|%s"` | Structured commit list |
+| **Chronological tracking** | `--topo-order` | Track considering merge order |
+| **Understand change impact** | `--raw` | Detailed file change display |
+| **Exclude-merge analysis** | `--cherry-pick --no-merges` | Extract only real commits |
 
-#### 出力例
+#### Sample Output
 
 ```markdown
-🔍 CI 失敗原因分析
+🔍 CI Failure Cause Analysis
 
-最近のコミット（構造化）:
+Recent commits (structured):
 | Hash | Subject | Author | Date |
 |------|---------|--------|------|
 | a1b2c3d | feat: update API | Alice | 2026-02-04 |
 | e4f5g6h | test: add tests | Bob | 2026-02-03 |
 
-変更ファイル（--raw）:
-├── src/api/endpoint.ts (Modified) ← 型エラー発生
+Changed files (--raw):
+├── src/api/endpoint.ts (Modified) ← type error here
 ├── tests/api.test.ts (Modified)
 └── package.json (Modified)
 
-→ a1b2c3d のコミットが原因の可能性大
-  型エラー: src/api/endpoint.ts:42
+→ Commit a1b2c3d is likely the cause
+  Type error: src/api/endpoint.ts:42
 ```
 
-## サブエージェント連携
+## Sub-agent Integration
 
-以下の条件を満たす場合、Task tool で ci-cd-fixer を起動:
+Launch ci-cd-fixer via the Task tool when the following conditions are met:
 
-- 修正 → 再実行 → 失敗のループが **2回以上** 発生
-- または、エラーが複数ファイルにまたがる複雑なケース
+- Fix → re-run → fail loop has occurred **2 or more times**
+- Or the error spans multiple files in a complex case
 
-**起動パターン:**
+**Launch pattern:**
 
 ```
 Task tool:
   subagent_type="ci-cd-fixer"
-  prompt="CI失敗を診断・修正してください。エラーログ: {error_log}"
+  prompt="Please diagnose and fix the CI failure. Error log: {error_log}"
 ```
 
-ci-cd-fixer は安全第一で動作（デフォルト dry-run モード）。
-詳細は `agents/ci-cd-fixer.md` を参照。
+ci-cd-fixer operates with safety first (default dry-run mode).
+See `agents/ci-cd-fixer.md` for details.
 
 ---
 
-## VibeCoder 向け
+## For VibeCoder
 
 ```markdown
-🔧 CI が壊れたときの言い方
+🔧 How to talk about broken CI
 
-1. **「CI が落ちた」「赤くなった」**
-   - 自動テストが失敗している状態
+1. **"CI failed" / "It went red"**
+   - Automated tests are failing
 
-2. **「なんで失敗してるの？」**
-   - 原因を調べてほしい
+2. **"Why is it failing?"**
+   - Investigate the cause
 
-3. **「直して」**
-   - 自動で修正を試みる
+3. **"Fix it"**
+   - Attempt automatic repair
 
-💡 重要: テストを「ごまかす」修正は禁止です
-   - ❌ テストを消す、スキップする
-   - ⭕ コードを正しく直す
+💡 Important: Fixes that "cheat" tests are prohibited
+   - ❌ Deleting or skipping tests
+   - ✅ Properly fixing the code
 
-「テストが間違ってそう」と思ったら、
-まず確認してから対応を決めましょう
+If you think "the test seems wrong",
+confirm first before deciding on a course of action
 ```

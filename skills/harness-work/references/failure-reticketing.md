@@ -8,7 +8,7 @@ by weakening tests.
 | Condition | Action |
 |---|---|
 | Test fails before completion | Fix in the same task if the cause is in scope |
-| Test fails after `cc:完了` | Create a follow-up fix proposal |
+| Test fails after `cc:done` | Create a follow-up fix proposal |
 | Same CI cause fails 3 times | Stop and escalate with evidence |
 
 ## Proposal Shape

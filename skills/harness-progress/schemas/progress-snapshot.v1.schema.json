@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://claude-code-harness.local/schemas/progress-snapshot.v1.schema.json",
   "title": "progress-snapshot.v1",
-  "description": "Progress Tracker (Phase 65.4) の進捗 snapshot 構造体。harness-progress skill が Plans.md と state file から組み立てる。",
+  "description": "Progress snapshot structure for the Progress Tracker (Phase 65.4). The harness-progress skill assembles this from Plans.md and state files.",
   "type": "object",
   "required": [
     "schema",
@@ -27,17 +27,17 @@
     },
     "project": {
       "type": "string",
-      "description": "プロジェクト名 (basename of git repo)"
+      "description": "Project name (basename of git repo)"
     },
     "current_task": {
       "type": "string",
-      "description": "現在進行中のタスク 1 行サマリ (cc:WIP の最初の項目)。WIP がない場合は空文字"
+      "description": "One-line summary of the currently in-progress task (first cc:WIP item). Empty string if no WIP task."
     },
     "progress_pct": {
       "type": "integer",
       "minimum": 0,
       "maximum": 100,
-      "description": "完了率 (cc:完了 ÷ (TODO+WIP+完了) × 100、四捨五入)"
+      "description": "Completion percentage (cc:done / (TODO+WIP+done) * 100, rounded)"
     },
     "todo_tasks": {
       "type": "array",
@@ -72,42 +72,42 @@
         "properties": {
           "number": {"type": "string"},
           "title": {"type": "string"},
-          "commit": {"type": "string", "description": "cc:完了 [hash] の hash 部分 (7 chars)"}
+          "commit": {"type": "string", "description": "Hash portion from cc:done [hash] (7 chars)"}
         }
       }
     },
     "elapsed_minutes": {
       "type": "integer",
       "minimum": 0,
-      "description": "セッション開始からの経過分数 (state file から読む、なければ 0)"
+      "description": "Elapsed minutes since session start (read from state file; 0 if missing)"
     },
     "estimated_total_minutes": {
       "type": "integer",
       "minimum": 0,
-      "description": "全タスク完了までの推定総分数 (state file から読む、なければ 0)"
+      "description": "Estimated total minutes to complete all tasks (read from state file; 0 if missing)"
     },
     "cost_so_far_usd": {
       "type": "number",
       "minimum": 0,
-      "description": "このセッションのこれまでの推定コスト USD (state file から読む、なければ 0)"
+      "description": "Estimated cost so far for this session in USD (read from state file; 0 if missing)"
     },
     "cost_estimate_usd": {
       "type": "number",
       "minimum": 0,
-      "description": "全タスク完了までの推定コスト USD (state file から読む、なければ 0)"
+      "description": "Estimated total cost to complete all tasks in USD (read from state file; 0 if missing)"
     },
     "alerts": {
       "type": "array",
-      "description": "drift detection の結果 alert (Phase 65.4.3 で populate、本 cycle では空配列)",
+      "description": "Drift detection result alerts (populated in Phase 65.4.3; empty array in current cycle)",
       "items": {"type": "object"}
     },
     "generated_at": {
       "type": "string",
-      "description": "ISO8601 UTC タイムスタンプ"
+      "description": "ISO8601 UTC timestamp"
     },
     "_done_recent_items": {
       "type": "array",
-      "description": "render-html.sh 用 derived helper: 直近 5 件の done タスク",
+      "description": "Derived helper for render-html.sh: the 5 most recently completed done tasks",
       "items": {
         "type": "object",
         "additionalProperties": false,

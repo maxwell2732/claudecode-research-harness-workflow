@@ -1,46 +1,45 @@
 # MessageDisplay Hook Policy (Claude Code 2.1.152+)
 
-CC `2.1.152` で `MessageDisplay` hook event が追加された。
-hook は assistant message が表示される直前に text を transform または hide できる。
+The `MessageDisplay` hook event was added in CC `2.1.152`.
+The hook can transform or hide text immediately before an assistant message is displayed.
 
-Harness は **audit 付き opt-in 表示補助** に限定し、assistant output の黙示改変は禁止する。
+Harness limits its use to **audit-backed opt-in display assistance** and prohibits silent modification of assistant output.
 
-## 適用範囲
+## Scope
 
-| 対象 | 方針 |
-|------|------|
-| Harness 配布 hooks (`.claude-plugin/hooks.json`, `hooks/hooks.json`) | Phase 80 時点では **MessageDisplay hook を追加しない** |
-| Operator / project custom hooks | この policy に従う場合のみ opt-in |
-| Codex | 対象外 (Claude Code hook surface) |
+| Target | Policy |
+|--------|--------|
+| Harness-distributed hooks (`.claude-plugin/hooks.json`, `hooks/hooks.json`) | **Do not add MessageDisplay hooks** as of Phase 80 |
+| Operator / project custom hooks | Opt-in only when following this policy |
+| Codex | Out of scope (Claude Code hook surface only) |
 
-## 許可される用途 (opt-in)
+## Permitted uses (opt-in)
 
-- ローカル locale 向けの **非セキュリティ** 表示整形 (例: 既知の status marker をユーザー向け文言に置換)
-- 重複 footer / debug banner の hide (**guard rail や deny 理由は hide しない**)
-- operator が明示的に有効化した `HARNESS_MESSAGE_DISPLAY=1` 配下の notification 整形
+- **Non-security** display formatting for local locale (e.g., replacing known status markers with user-facing labels)
+- Hiding duplicate footers / debug banners (**do not hide guard rail or deny reasons**)
+- Notification formatting under `HARNESS_MESSAGE_DISPLAY=1` explicitly enabled by the operator
 
-## 禁止
+## Prohibited
 
-- Permission deny / ask 理由、R01-R13 guard rail 出力、secret 値、`.env` 内容の hide または rewrite
-- Reviewer `REQUEST_CHANGES` / Worker `advisor-request` 等の **証跡メッセージ** の transform
-- ユーザー未承認の assistant 回答の意味変更 (要約で事実を欠落させる rewrite)
-- Auto mode classifier 出力の hide による risk 隠蔽
+- Hiding or rewriting: permission deny/ask reasons, R01-R13 guard rail output, secret values, `.env` contents
+- Transforming **audit-trail messages** such as Reviewer `REQUEST_CHANGES` or Worker `advisor-request`
+- Semantic changes to assistant answers not approved by the user (rewrites that omit facts from summaries)
+- Hiding auto mode classifier output to conceal risk
 
-## Audit 要件
+## Audit requirements
 
-MessageDisplay hook を project に追加する場合:
+When adding a MessageDisplay hook to a project:
 
-1. hook script 名と trigger 条件を `.claude/rules/hooks-2.1.152-plus.md` または project rules に 1 行記載
-2. transform 前後を jsonl に記録するか、`/doctor` で hook が登録されていることを確認可能にする
-3. hide 対象は allowlist (固定 prefix / 既知 debug tag) に限定する
+1. Record the hook script name and trigger condition in `.claude/rules/hooks-2.1.152-plus.md` or project rules in one line
+2. Log before/after transforms to a jsonl file, or make it verifiable via `/doctor` that the hook is registered
+3. Limit hide targets to an allowlist (fixed prefixes / known debug tags)
 
-## Auto mode consent との関係
+## Relationship to Auto mode consent
 
-upstream で Auto mode の opt-in consent が廃止されても、Harness は
-`MessageDisplay` を Auto mode 有効化の代替手段にしない。
-`--auto-mode` default 化や `autoMode.hard_deny` 緩和の理由にも使わない。
+Even if upstream removes opt-in consent for Auto mode, Harness will not use `MessageDisplay` as an alternative mechanism to enable Auto mode.
+It will also not be used as a reason to default `--auto-mode` or to relax `autoMode.hard_deny`.
 
-## 関連
+## Related
 
 - `docs/upstream-adoption-plan-2026-05-27.md`
 - `.claude/rules/hooks-2.1.152-plus.md`

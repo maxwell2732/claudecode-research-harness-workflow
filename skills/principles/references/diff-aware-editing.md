@@ -1,57 +1,57 @@
 ---
 name: core-diff-aware-editing
-description: "最小限の差分でファイルを編集し、既存コードへの影響を最小化する。"
+description: "Edit files with minimal diff to minimize impact on existing code."
 allowed-tools: ["Read", "Edit"]
 ---
 
 # Diff-Aware Editing
 
-ファイル編集時に最小限の差分で変更を行うスキル。
-既存コードの破壊を防ぎ、レビューしやすい変更を実現します。
+A skill for making changes to files with minimal diffs.
+Prevents breaking existing code and produces changes that are easy to review.
 
 ---
 
-## 基本原則
+## Core Principles
 
 ### 1. Read Before Edit
 
-**必ず対象ファイルを読んでから編集する**
+**Always read the target file before editing**
 
 ```
-❌ 悪い例: Write ツールでファイル全体を上書き
-✅ 良い例: Read → 内容確認 → Edit で必要部分のみ変更
+❌ Bad: Overwrite the entire file with the Write tool
+✅ Good: Read → review contents → use Edit to change only necessary parts
 ```
 
-### 2. 最小差分の優先
+### 2. Prefer Minimal Diffs
 
-変更は必要最小限に留める：
+Keep changes to the minimum necessary:
 
-- 既存のインデント・フォーマットを維持
-- 既存のコメントは残す
-- 使われているスタイルに合わせる
+- Maintain existing indentation and formatting
+- Leave existing comments intact
+- Follow the style already in use
 
-### 3. 意味のある単位で変更
+### 3. Change One Meaningful Unit at a Time
 
 ```typescript
-// ❌ 悪い例: 無関係な変更を混ぜる
-// 関数の追加 + フォーマット変更 + import整理
+// ❌ Bad: Mix unrelated changes
+// Adding a function + changing formatting + organizing imports
 
-// ✅ 良い例: 1つの変更に集中
-// 関数の追加のみ
+// ✅ Good: Focus on one change
+// Adding the function only
 ```
 
 ---
 
-## Edit ツールの使い方
+## How to Use the Edit Tool
 
-### パターン1: 単純な置換
+### Pattern 1: Simple Replacement
 
 ```
 old_string: "const value = 1"
 new_string: "const value = 2"
 ```
 
-### パターン2: コードブロックの追加
+### Pattern 2: Adding a Code Block
 
 ```
 old_string: "// TODO: implement feature"
@@ -61,7 +61,7 @@ const feature = () => {
 }"
 ```
 
-### パターン3: 関数の修正
+### Pattern 3: Modifying a Function
 
 ```
 old_string: "function getData() {
@@ -75,72 +75,72 @@ new_string: "function getData() {
 
 ---
 
-## 避けるべきパターン
+## Patterns to Avoid
 
-### 1. ファイル全体の書き換え
-
-```
-❌ Write ツールで 100 行のファイルを丸ごと書き直す
-✅ Edit ツールで変更が必要な 5 行だけ修正
-```
-
-### 2. フォーマット変更の混入
+### 1. Rewriting an Entire File
 
 ```
-❌ 機能追加と同時にインデントを変更
-✅ 機能追加のみ。フォーマットは別コミットで
+❌ Use the Write tool to completely rewrite a 100-line file
+✅ Use the Edit tool to fix only the 5 lines that need changing
 ```
 
-### 3. 不要な空行・コメントの追加
+### 2. Mixing in Formatting Changes
 
 ```
-❌ 自分のスタイルを押し付ける
-✅ 既存のスタイルに従う
+❌ Change indentation while adding a feature
+✅ Add the feature only. Handle formatting in a separate commit
+```
+
+### 3. Adding Unnecessary Blank Lines or Comments
+
+```
+❌ Impose your own style
+✅ Follow the existing style
 ```
 
 ---
 
-## 編集前チェックリスト
+## Pre-Edit Checklist
 
-1. [ ] 対象ファイルを Read で確認した
-2. [ ] 変更が必要な箇所を特定した
-3. [ ] 既存のスタイル（インデント、命名規則）を把握した
-4. [ ] 変更が paths.allowed_modify に含まれるか確認した
-5. [ ] 変更後の動作をイメージできた
+1. [ ] Confirmed the target file with Read
+2. [ ] Identified the parts that need to change
+3. [ ] Understood the existing style (indentation, naming conventions)
+4. [ ] Confirmed the change is within paths.allowed_modify
+5. [ ] Can visualize the expected behavior after the change
 
 ---
 
-## 編集後の確認
+## Post-Edit Verification
 
 ```bash
-# 差分の確認
+# Review the diff
 git diff
 
-# 変更行数の確認（大きすぎないか）
+# Check line count (is it too large?)
 git diff --stat
 
-# 構文エラーがないか
+# Check for syntax errors
 npm run build 2>&1 | head -20
-# または
+# or
 npx tsc --noEmit
 ```
 
 ---
 
-## 複数ファイルの編集
+## Editing Multiple Files
 
-複数ファイルを編集する場合：
+When editing multiple files:
 
-1. **依存関係の順序**: 型定義 → 実装 → テスト
-2. **一貫性の確保**: 関連する変更は同時に行う
-3. **中間状態でも動作**: 各編集後にビルドが通る状態を維持
+1. **Dependency order**: Type definitions → Implementation → Tests
+2. **Maintain consistency**: Make related changes together
+3. **Keep build passing**: Ensure the build passes after each edit
 
 ---
 
-## エラー時の対応
+## Handling Errors
 
-編集でエラーが発生した場合：
+If an error occurs during editing:
 
-1. **元のコードを再確認**: Read で現在の状態を確認
-2. **old_string の一致確認**: 空白・改行を正確に
-3. **分割して試行**: 大きな変更は小さく分割
+1. **Re-check the original code**: Use Read to verify current state
+2. **Verify old_string match**: Check whitespace and newlines exactly
+3. **Split and retry**: Break large changes into smaller pieces

@@ -1,62 +1,58 @@
 # Skill Overrides Policy (Phase 62.2.5)
 
 > **Status**: Active (2026-05-07)
-> **対象**: Claude Code `2.1.129` で `skillOverrides` 設定が `off` / `user-invocable-only` /
-> `name-only` の 3 mode をサポートするようになった。Harness の skill ガバナンスとの関係を
-> 明示し、enterprise / individual で適切な default を定める。
+> **Scope**: Claude Code `2.1.129` added support for 3 modes in `skillOverrides`: `off` / `user-invocable-only` / `name-only`. This document clarifies the relationship with Harness skill governance and establishes appropriate defaults for enterprise and individual use.
 
-## ひとことで
+## In a nutshell
 
-`skillOverrides` 3 mode は **モデルに skill を上書きさせるかどうか** の policy。
-Harness は 既定で **何も設定しない** (= CC default 挙動) が、enterprise governance では
-`name-only` を推奨する。
+The 3 `skillOverrides` modes define **whether the model is allowed to override skills**.
+Harness sets **nothing by default** (= CC default behavior), but recommends `name-only` for enterprise governance.
 
-## たとえると
+## Analogy
 
-「料理人 (モデル) にレシピ (skill) をどこまでアレンジさせるか」を決める policy。
-- `off`: アレンジ禁止 (既定 skill のみ実行)
-- `user-invocable-only`: ユーザーが指名したアレンジだけ許可
-- `name-only`: 名前で指定したものだけアレンジ可、勝手に他のレシピは引かない
-- 未設定: CC default = ある程度アレンジ可
+A policy deciding how much a chef (model) is allowed to adapt a recipe (skill):
+- `off`: No adaptation (only default skills run)
+- `user-invocable-only`: Only user-specified adaptations allowed
+- `name-only`: Only name-matched adaptations allowed; no spontaneous pulling of other recipes
+- Unset: CC default = some adaptation allowed
 
-## 3 mode の意味
+## 3 mode meanings
 
-| mode | 意味 | 用途 |
-|------|------|------|
-| `off` | モデル経由の skill activation を完全無効化 | 高度な enterprise 環境、skill の挙動を完全に固定したいとき |
-| `user-invocable-only` | ユーザーが `/<skill>` で明示起動した skill のみ許可、モデル自動起動を禁止 | 「モデルが暗黙に skill を呼ぶ」挙動を避けたい中間 governance |
-| `name-only` | skill の name フィールド一致による起動のみ許可 (description-based 自動 trigger を抑制) | description のあいまい一致による予期せぬ skill 発動を防ぎたい場合 |
-| 未設定 (default) | CC default 挙動。description-based 自動 trigger も含めて全て有効 | 個人開発、Harness 既定 |
+| Mode | Meaning | Use case |
+|------|---------|----------|
+| `off` | Fully disables model-driven skill activation | Advanced enterprise environments; when skill behavior must be fully fixed |
+| `user-invocable-only` | Only skills explicitly invoked by the user via `/<skill>` are allowed; model auto-invocation is blocked | Avoiding implicit model-driven skill calls |
+| `name-only` | Only activation by matching the skill `name` field is allowed (description-based auto-trigger suppressed) | Preventing unexpected skill activation from fuzzy description matching |
+| Unset (default) | CC default behavior. All activations including description-based auto-trigger are enabled | Individual development, Harness default |
 
-## Harness 既定方針
+## Harness default policy
 
-| 環境 | 推奨 mode | 理由 |
-|------|-----------|------|
-| 個人 / 単独開発 | 未設定 (CC default) | description ベースの自動 trigger が便利 |
-| Team (small) | 未設定 + skill manifest 監査 | `scripts/generate-skill-manifest.sh` で skill 一覧を可視化 |
-| Enterprise governance | **`name-only`** | description あいまい一致を抑制し、明示的 skill 起動のみ許可 |
-| 教育 / training session | `user-invocable-only` | モデルの自動起動を禁じ、学習者が能動的に skill を選ばせる |
+| Environment | Recommended mode | Reason |
+|-------------|-----------------|--------|
+| Individual / solo dev | Unset (CC default) | Description-based auto-trigger is convenient |
+| Team (small) | Unset + skill manifest audit | Use `scripts/generate-skill-manifest.sh` to visualize skill list |
+| Enterprise governance | **`name-only`** | Suppresses fuzzy description matching; only explicit skill invocations allowed |
+| Education / training session | `user-invocable-only` | Prevents model auto-invocation; forces learners to actively choose skills |
 
-`harness-init` で生成する template には **default を入れない** (= CC default を尊重)。
-enterprise 利用者は `.claude/settings.json` または `.claude/settings.local.json` で明示する。
+`harness-init`-generated templates **do not include a default** (= respects CC default).
+Enterprise users set this explicitly in `.claude/settings.json` or `.claude/settings.local.json`.
 
-## skill manifest との関係
+## Relationship with skill manifest
 
-Phase 59.1.2 で `scripts/generate-skill-manifest.sh` が `kind` / `purpose` / `trigger` /
-`shape` / `role` / `base` / `pair` / `owner` 等のメタデータを machine-readable に出すようにした。
+In Phase 59.1.2, `scripts/generate-skill-manifest.sh` was updated to output machine-readable metadata including `kind` / `purpose` / `trigger` / `shape` / `role` / `base` / `pair` / `owner`.
 
-`skillOverrides: name-only` 環境では、CC は skill の **name** だけを matching する。
-description-based 自動 trigger は無効になる。
-そのため skill 名は **意味的に明示的** であるべき (`harness-work` / `harness-review` 等の動詞 + 名詞)。
+In `skillOverrides: name-only` environments, CC matches only on the skill **name**.
+Description-based auto-trigger is disabled.
+Therefore skill names should be **semantically explicit** (`harness-work` / `harness-review` etc., verb + noun).
 
-| skill 命名 | name-only mode の挙動 |
-|-----------|----------------------|
-| `harness-work` | 明示起動は OK (`/harness-work`) |
-| `breezing` (alias) | 明示起動は OK (`/breezing`) |
-| `harness-loop` | 明示起動は OK (`/harness-loop`) |
-| 抽象的 / 一般語 (例: `helper`) | 名前衝突リスクがあるので避ける |
+| Skill name | Behavior in name-only mode |
+|-----------|---------------------------|
+| `harness-work` | Explicit invocation is OK (`/harness-work`) |
+| `breezing` (alias) | Explicit invocation is OK (`/breezing`) |
+| `harness-loop` | Explicit invocation is OK (`/harness-loop`) |
+| Abstract / generic names (e.g., `helper`) | Avoid — risk of name collision |
 
-## 設定例
+## Configuration examples
 
 ### Enterprise governance (`.claude/settings.json`)
 
@@ -66,7 +62,7 @@ description-based 自動 trigger は無効になる。
 }
 ```
 
-### 個別無効化 (特定環境のみ)
+### Individual disable (specific environments only)
 
 ```json
 {
@@ -74,29 +70,28 @@ description-based 自動 trigger は無効になる。
 }
 ```
 
-これにより、自動化されたバッチ実行で skill の暗黙起動を完全に止められる。
+This completely stops implicit skill invocation in automated batch execution.
 
-### 既定 (推奨されない明示)
+### Default (not recommended to set explicitly)
 
-明示的に `default` を指定する mode は無いため、未設定で CC default を保つ。
+There is no mode to explicitly set `default`, so leave it unset to keep CC default.
 
-## tests / `harness-init` における扱い
+## Handling in tests / `harness-init`
 
-- `tests/test-settings-baseline.sh` (Phase 62.1.4 で作成検討) は `skillOverrides` の存在を
-  **許容するが強制しない** (個人開発で `default` を妨げないため)
-- `harness-init` は `skillOverrides` を生成 settings に **入れない**
-- 移植 / customize 時に enterprise governance が必要な場合は本 doc を参照
+- `tests/test-settings-baseline.sh` (considered for Phase 62.1.4) **tolerates but does not enforce** the presence of `skillOverrides` (so it does not block `default` in individual development)
+- `harness-init` does **not** include `skillOverrides` in the generated settings
+- When enterprise governance is needed during porting / customization, refer to this document
 
-## Acceptance 条件 (Phase 62.2.5 DoD)
+## Acceptance criteria (Phase 62.2.5 DoD)
 
-- [x] 3 mode の意味が表で書かれる
-- [x] 推奨 default が環境 (個人 / team / enterprise / education) ごとに固定
-- [x] enterprise governance 用途が明示
-- [x] Phase 59.1.2 skill manifest との関係が明記
-- [x] `harness-init` で default を入れるかの判断が記録 (= 入れない)
+- [x] 3 mode meanings documented in a table
+- [x] Recommended defaults fixed per environment (individual / team / enterprise / education)
+- [x] Enterprise governance use case documented
+- [x] Relationship with Phase 59.1.2 skill manifest documented
+- [x] Decision on whether `harness-init` includes defaults recorded (= does not include)
 
-## 関連 doc
+## Related docs
 
-- Phase 59.1.2 (`scripts/generate-skill-manifest.sh`) — skill metadata 機械化
-- Phase 58.2.3 (`docs/upstream-followups-phase58-2026-05-03.md`) — setup / docs 候補としての扱い
+- Phase 59.1.2 (`scripts/generate-skill-manifest.sh`) — skill metadata automation
+- Phase 58.2.3 (`docs/upstream-followups-phase58-2026-05-03.md`) — treatment as setup / docs candidate
 - Claude Code 2.1.129 CHANGELOG: `skillOverrides` setting now works with `off`, `user-invocable-only`, `name-only` options

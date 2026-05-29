@@ -1,53 +1,53 @@
-# Sandbox Allowlist Recipe (Firecrawl / Web Scraping 用)
+# Sandbox Allowlist Recipe (for Firecrawl / Web Scraping)
 
-claude-code-harness を install した他プロジェクトで Firecrawl・テックブログ取得・外部 API 呼び出しが `HTTP/2 403 / x-deny-reason: host_not_allowed` で塞がれる時の解決レシピ。
+A solution recipe for when Firecrawl, tech blog fetching, or external API calls in other projects using claude-code-harness are blocked with `HTTP/2 403 / x-deny-reason: host_not_allowed`.
 
-> **TL;DR**: CC sandbox は default で **allowlist 空 = 全 deny**。ユーザー global の `~/.claude/settings.json` に `sandbox.network.allowedDomains` を追加するのが正規ルート。AI 経由で書き換えは self-audit guard で deny されるため、**ユーザー手動編集**。
+> **TL;DR**: The CC sandbox defaults to **empty allowlist = deny all**. The correct path is to add `sandbox.network.allowedDomains` to `~/.claude/settings.json` at the user global level. Since AI-driven rewrites are denied by the self-audit guard, this requires **manual user editing**.
 
-## 症状
+## Symptoms
 
-外部プロジェクトで Firecrawl CLI / WebFetch / curl が 403 / connection refused になる。Bash subprocess のログに以下が出る:
+Firecrawl CLI / WebFetch / curl returns 403 / connection refused in external projects. The Bash subprocess log shows:
 
 ```
 HTTP/2 403
 x-deny-reason: host_not_allowed
 ```
 
-または
+Or:
 
 ```
 curl: (6) Could not resolve host: api.firecrawl.dev
 ```
 
-## 原因
+## Cause
 
-Claude Code sandbox（macOS Seatbelt / Linux bubblewrap）は **allowlist default**。`~/.claude/settings.json` に `sandbox.network.allowedDomains` が無い = どのホストへも外向き通信できない。
+The Claude Code sandbox (macOS Seatbelt / Linux bubblewrap) uses an **allowlist default**. No `sandbox.network.allowedDomains` in `~/.claude/settings.json` = no outbound communication to any host.
 
-Firecrawl plugin の `SKILL.md` を確認すると `allowed-tools: Bash(firecrawl *)`。つまり Firecrawl CLI は Bash subprocess として走り、sandbox の影響を直接受ける（MCP server ではない）。
+Checking the Firecrawl plugin `SKILL.md` shows `allowed-tools: Bash(firecrawl *)`. This means the Firecrawl CLI runs as a Bash subprocess and is directly affected by the sandbox (it is not an MCP server).
 
-## 解決: `~/.claude/settings.json` に sandbox 設定を merge
+## Fix: Merge sandbox settings into `~/.claude/settings.json`
 
-**重要**: `~/.claude/settings.json` に **既存の `sandbox` キーがあるかどうか** で 2 ケース分岐する。誤って既存 sandbox を上書きすると、`failIfUnavailable` / `filesystem.denyRead` / `network.deniedDomains` などの既存 guardrail が消える。
+**Important**: There are 2 cases depending on whether **an existing `sandbox` key already exists** in `~/.claude/settings.json`. Accidentally overwriting an existing sandbox will erase existing guardrails like `failIfUnavailable` / `filesystem.denyRead` / `network.deniedDomains`.
 
-### Step 0: 既存 sandbox の有無を確認
+### Step 0: Check for existing sandbox key
 
 ```bash
 jq 'has("sandbox")' ~/.claude/settings.json
-# false → Case A (新規追加)
-# true  → Case B (内側 merge)
+# false → Case A (new addition)
+# true  → Case B (inner merge)
 ```
 
-### Case A: 既存に `sandbox` キーが無い場合 (新規追加)
+### Case A: No existing `sandbox` key (new addition)
 
-既存の `permissions` / `hooks` / `enabledPlugins` / `mcpServers` 等と **同じ階層 (top-level)** に `sandbox` キーを 1 つ追加する。既存キーは touch しない:
+Add one `sandbox` key at the **same level (top-level)** as existing `permissions` / `hooks` / `enabledPlugins` / `mcpServers` etc. Do not touch existing keys:
 
 ```json
 {
-  "permissions": { /* 既存維持 */ },
-  "hooks": { /* 既存維持 */ },
-  "enabledPlugins": { /* 既存維持 */ },
-  "mcpServers": { /* 既存維持 */ },
-  /* ... 他の既存 top-level keys も全て維持 ... */
+  "permissions": { /* preserve existing */ },
+  "hooks": { /* preserve existing */ },
+  "enabledPlugins": { /* preserve existing */ },
+  "mcpServers": { /* preserve existing */ },
+  /* ... preserve all other existing top-level keys ... */
 
   "sandbox": {
     "enabled": true,
@@ -81,38 +81,38 @@ jq 'has("sandbox")' ~/.claude/settings.json
 }
 ```
 
-### Case B: 既存に `sandbox` キーがある場合 (内側 merge)
+### Case B: Existing `sandbox` key present (inner merge)
 
-既存の `sandbox.failIfUnavailable` / `sandbox.filesystem` / `sandbox.network.deniedDomains` などを **保持したまま**、内側にフィールドを追加 / 統合する。**`sandbox` ブロック全体の置換は禁止** (既存 guardrail を破壊する)。
+**While preserving** existing `sandbox.failIfUnavailable` / `sandbox.filesystem` / `sandbox.network.deniedDomains` etc., add/integrate fields inside. **Replacing the entire `sandbox` block is prohibited** (would destroy existing guardrails).
 
-merge ルール:
+Merge rules:
 
-| フィールド | 操作 | 注意 |
-|------|------|------|
-| `sandbox.enabled` | `true` に設定 | 既に `true` なら維持 |
-| `sandbox.autoAllowBashIfSandboxed` | `true` に設定 | 新規追加 |
-| `sandbox.failIfUnavailable` | **既存維持** | 触らない |
-| `sandbox.excludedCommands` | 配列なら **union (重複排除して結合)**、無ければ新規追加 | 既存項目を消さない |
-| `sandbox.network.allowedDomains` | **既存配列 + 本 recipe の 29 個を union** | 既存ホストを消さない |
-| `sandbox.network.deniedDomains` | **既存配列 + 本 recipe の 9 個を union** | 既存遮断ホストを残す |
-| `sandbox.filesystem` | **既存維持** | touch 禁止 (denyRead/allowRead 等が消える) |
+| Field | Operation | Note |
+|-------|-----------|------|
+| `sandbox.enabled` | Set to `true` | Preserve if already `true` |
+| `sandbox.autoAllowBashIfSandboxed` | Set to `true` | New addition |
+| `sandbox.failIfUnavailable` | **Preserve existing** | Do not touch |
+| `sandbox.excludedCommands` | If array: **union (merge deduped)**; if absent: new addition | Do not remove existing items |
+| `sandbox.network.allowedDomains` | **Existing array + 29 from this recipe as union** | Do not remove existing hosts |
+| `sandbox.network.deniedDomains` | **Existing array + 9 from this recipe as union** | Keep existing blocked hosts |
+| `sandbox.filesystem` | **Preserve existing** | Touch forbidden (denyRead/allowRead etc. would be lost) |
 
-### 自動 merge する jq one-liner (Case A / B 両対応)
+### Auto-merge jq one-liner (works for both Case A and B)
 
-エディタでの手動 merge は重複と guardrail 消去のリスクが高い。以下の jq one-liner は両 case 安全:
+Manual merging in an editor risks duplicates and guardrail erasure. The following jq one-liner is safe for both cases:
 
 ```bash
 SETTINGS=~/.claude/settings.json
 
-# 1. 元のファイル mode を保存 (token を含むため 600 等で保護されているケースに対応)
-#    cross-platform stat: Linux GNU stat -c を先に試し、macOS BSD stat -f に fallback
-#    (順序重要: BSD stat -f は Linux では filesystem-status flag として誤動作する)
+# 1. Save original file mode (handles cases where file is protected as 600 etc. due to containing tokens)
+#    Cross-platform stat: try Linux GNU stat -c first, fall back to macOS BSD stat -f
+#    (Order matters: BSD stat -f on Linux misinterprets as filesystem-status flag)
 MODE=$(stat -c '%a' "$SETTINGS" 2>/dev/null || stat -f '%Lp' "$SETTINGS")
 
-# 2. backup (cp -p で mode/ownership を保持)
+# 2. Backup (cp -p preserves mode/ownership)
 cp -p "$SETTINGS" "${SETTINGS}.bak.$(date +%Y%m%d-%H%M%S)"
 
-# 3. merge (既存 sandbox.filesystem / failIfUnavailable は保持、配列は union)
+# 3. Merge (preserve existing sandbox.filesystem / failIfUnavailable; union arrays)
 jq '
   .sandbox.enabled = true |
   .sandbox.autoAllowBashIfSandboxed = true |
@@ -143,34 +143,34 @@ jq '
   && chmod "$MODE" "${SETTINGS}.tmp" \
   && mv "${SETTINGS}.tmp" "$SETTINGS"
 
-# 4. mode が保持されたか念のため確認 (元の mode と一致するはず)
-#    順序は MODE 取得と同じ: Linux GNU stat -c → macOS BSD stat -f fallback
+# 4. Verify mode was preserved (should match original mode)
+#    Same order as MODE retrieval: Linux GNU stat -c → macOS BSD stat -f fallback
 stat -c '%a' "$SETTINGS" 2>/dev/null || stat -f '%Lp' "$SETTINGS"
 ```
 
-> **なぜ `chmod "$MODE"` が必要か**: `>` redirect + `mv` パターンは tmp ファイルを umask (一般に `022` → 644) で作成するため、元の `~/.claude/settings.json` が `600` (token / secret を含むため強い permission で保護) だった場合、merge 後に **read access が広がる** security regression が起きる。`chmod "$MODE"` で元の mode を明示復元すれば、token を含むファイルでも安全。
+> **Why `chmod "$MODE"` is needed**: The `>` redirect + `mv` pattern creates the tmp file with umask (typically `022` → 644). If the original `~/.claude/settings.json` was `600` (strong permission protection due to containing tokens/secrets), the merge would cause a **security regression by broadening read access**. Explicitly restoring the original mode with `chmod "$MODE"` keeps files containing tokens safe.
 
-> **AI からこの jq を実行できない理由**: `~/.claude/settings.json` は AI による self-tampering 防止対象 (`Edit/Write(.claude/settings*)` deny + auto mode classifier が Bash 経由の迂回も block)。**ユーザー自身がターミナルで実行する**前提のレシピ。
+> **Why this jq cannot be run by AI**: `~/.claude/settings.json` is protected from AI self-tampering (`Edit/Write(.claude/settings*)` deny + auto mode classifier also blocks Bash bypass). This recipe is intended to be **run by the user themselves in a terminal**.
 
-### 検証
+### Verification
 
 ```bash
-# JSON 構文
+# JSON syntax
 jq -e '.' ~/.claude/settings.json > /dev/null && echo "VALID JSON"
 
-# allowedDomains の件数
-# Case A (既存 sandbox 無し): ちょうど 29
-# Case B (既存 sandbox あり): 29 以上 (既存と union したので 29 + 既存独自分)
+# Count allowedDomains
+# Case A (no existing sandbox): exactly 29
+# Case B (existing sandbox): 29 or more (union with existing)
 jq '.sandbox.network.allowedDomains | length' ~/.claude/settings.json
 
-# deniedDomains の件数
-# Case A: ちょうど 9 / Case B: 9 以上
+# Count deniedDomains
+# Case A: exactly 9 / Case B: 9 or more
 jq '.sandbox.network.deniedDomains | length' ~/.claude/settings.json
 
-# 必須ホストが含まれているか (Case A / B 共通の最低条件)
-# 注意: jq array `contains` は string substring match なので "www.firecrawl.dev" が
-# "firecrawl.dev" を含むと誤判定する。exact match のため any(. == "...") を使う
-# (any() は ! を含まないため zsh history expansion との衝突も無い)
+# Check required hosts are included (minimum condition common to Case A/B)
+# Note: jq array `contains` does substring match on strings, so "www.firecrawl.dev"
+# would false-positive match "firecrawl.dev". Use any(. == "...") for exact match
+# (any() does not include ! so no zsh history expansion conflict)
 jq -e '
   (.sandbox.network.allowedDomains | any(. == "api.firecrawl.dev")) and
   (.sandbox.network.allowedDomains | any(. == "firecrawl.dev")) and
@@ -178,84 +178,84 @@ jq -e '
   (.sandbox.network.deniedDomains | any(. == "pastebin.com"))
 ' ~/.claude/settings.json && echo "REQUIRED HOSTS PRESENT"
 
-# Case B 限定: 既存 filesystem セクションが破壊されていないか
+# Case B only: verify existing filesystem section is not destroyed
 jq '.sandbox.filesystem // "no filesystem section (Case A)"' ~/.claude/settings.json
 
-# 既存の enabledPlugins が壊れていないか (Case A / B 共通)
+# Verify existing enabledPlugins are intact (common to Case A/B)
 jq '.enabledPlugins | length' ~/.claude/settings.json
-# → 既存件数を維持
+# → Should maintain existing count
 ```
 
-### CC 再起動
+### Restart CC
 
-sandbox 設定は **session start 時にのみ読まれる**。merge 後は CC を完全再起動 (cmd+Q → 再起動) で initialize される。
+Sandbox settings are **read only at session start**. After merging, fully restart CC (cmd+Q → restart) to initialize.
 
-## 構成の意図
+## Configuration intent
 
-3 階層で先回り許可する設計:
+3-layer pre-allow design:
 
-| 階層 | ドメイン | 用途 |
-|------|---------|------|
-| **開発コア** (14) | `github.com` / `api.github.com` / `raw.githubusercontent.com` / `codeload.github.com` / `objects.githubusercontent.com` / `registry.npmjs.org` / `api.anthropic.com` / `pypi.org` / `files.pythonhosted.org` / `proxy.golang.org` / `sum.golang.org` / `crates.io` / `static.crates.io` / `rubygems.org` | npm install / pip install / go mod / cargo / git clone |
-| **Firecrawl** (2) | `api.firecrawl.dev` / `firecrawl.dev` | Firecrawl API endpoint |
-| **スクレイプ対象** (13) | `techblog.zozo.com` / `note.com` / `assets.st-note.com` / `zenn.dev` / `qiita.com` / `dev.to` / `medium.com` / `cdn-ak.f.st-hatena.com` / `engineering.dena.com` / `developers.cyberagent.co.jp` / `tech.uzabase.com` / `engineer.crowdworks.jp` / `tech.smarthr.jp` | 日本/英語のテックブログ・記事スクレイプ |
+| Layer | Domains | Purpose |
+|-------|---------|---------|
+| **Dev core** (14) | `github.com` / `api.github.com` / `raw.githubusercontent.com` / `codeload.github.com` / `objects.githubusercontent.com` / `registry.npmjs.org` / `api.anthropic.com` / `pypi.org` / `files.pythonhosted.org` / `proxy.golang.org` / `sum.golang.org` / `crates.io` / `static.crates.io` / `rubygems.org` | npm install / pip install / go mod / cargo / git clone |
+| **Firecrawl** (2) | `api.firecrawl.dev` / `firecrawl.dev` | Firecrawl API endpoints |
+| **Scrape targets** (13) | `techblog.zozo.com` / `note.com` / `assets.st-note.com` / `zenn.dev` / `qiita.com` / `dev.to` / `medium.com` / `cdn-ak.f.st-hatena.com` / `engineering.dena.com` / `developers.cyberagent.co.jp` / `tech.uzabase.com` / `engineer.crowdworks.jp` / `tech.smarthr.jp` | Japanese/English tech blogs and article scraping |
 
-`deniedDomains` 9 個（クラウド metadata endpoint と pastebin 系）は **SSRF + 情報流出経路の遮断**として維持。`allowedDomains` で許可してもこちらが優先で deny される。
+The 9 `deniedDomains` (cloud metadata endpoints and pastebin-type services) are maintained as **SSRF + information leak path blocking**. Even if allowed in `allowedDomains`, these take priority and are denied.
 
-## 各 sandbox オプションの意味
+## Meaning of each sandbox option
 
-| キー | 値 | 意味 |
-|------|-----|------|
-| `enabled` | `true` | CC 起動時から sandbox を ON にする。`/sandbox` コマンドでの手動起動が不要 |
-| `autoAllowBashIfSandboxed` | `true` | sandbox に閉じ込められた Bash subprocess は permission ダイアログ無しで自動許可。autonomous セッションが止まらない |
-| `excludedCommands` | `docker / docker-compose / watchman / systemctl / launchctl / brew services` | sandbox 内で動かせない OS 系コマンドは sandbox 外で実行に逃がす |
-| `network.allowedDomains` | 29 個 | 外向き通信を許可するホスト |
-| `network.deniedDomains` | 9 個 | 許可リストにあっても拒否する（優先） |
+| Key | Value | Meaning |
+|-----|-------|---------|
+| `enabled` | `true` | Sandbox is ON from CC startup. Manual `/sandbox` command is not needed |
+| `autoAllowBashIfSandboxed` | `true` | Bash subprocesses confined to the sandbox are auto-allowed without permission dialogs. Autonomous sessions don't get stuck |
+| `excludedCommands` | `docker / docker-compose / watchman / systemctl / launchctl / brew services` | OS-level commands that cannot run inside sandbox are routed to run outside |
+| `network.allowedDomains` | 29 entries | Hosts permitted for outbound communication |
+| `network.deniedDomains` | 9 entries | Denied even if on allowlist (takes priority) |
 
-## 外向き通信のスモークテスト (要 `FIRECRAWL_API_KEY`)
+## Outbound communication smoke test (requires `FIRECRAWL_API_KEY`)
 
-実際に sandbox 越しに通るかを確認:
+Verify actual connectivity through the sandbox:
 
 ```bash
 firecrawl scrape "https://techblog.zozo.com/" -o /tmp/test.md
-# → 成功すれば /tmp/test.md に markdown が書き出される
-# → 失敗時 (HTTP/2 403 / x-deny-reason: host_not_allowed) は
-#   sandbox 設定が effective になっていない (CC 再起動を忘れた可能性)
+# → Success: /tmp/test.md will be written as markdown
+# → Failure (HTTP/2 403 / x-deny-reason: host_not_allowed):
+#   Sandbox settings are not yet effective (possibly forgot to restart CC)
 ```
 
-## なぜ AI が自動で編集しないのか
+## Why AI does not automatically edit this
 
-`~/.claude/settings.json` は CC 自身を制約する security boundary。AI が自分の制約を勝手に緩める（self-tampering）のを防ぐため、CC の auto mode classifier と `Edit(.claude/settings*)` / `Write(.claude/settings*)` deny rule が **二重で**ブロックする。Bash 経由の迂回も classifier が「User Deny Rules circumvention」として deny する設計。
+`~/.claude/settings.json` is a security boundary that constrains CC itself. To prevent AI from loosening its own constraints (self-tampering), CC's auto mode classifier and `Edit(.claude/settings*)` / `Write(.claude/settings*)` deny rule **doubly** block it. Bash-based bypasses are also denied by the classifier as "User Deny Rules circumvention."
 
-このため:
-- AI 側: patch JSON を **提示するだけ**
-- ユーザー側: 手動で適用 + 検証
+Therefore:
+- AI side: **only presents** the patch JSON
+- User side: manually applies + verifies
 
-これは harness の **責任境界**。AI に security 設定変更の自律権限は持たせない。
+This is the Harness **responsibility boundary**. AI is not granted autonomous authority to change security settings.
 
-## トラブルシューティング
+## Troubleshooting
 
-### 編集後も 403 が出る
+### Still getting 403 after editing
 
-1. JSON syntax error の可能性。`jq -e '.' ~/.claude/settings.json` で確認
-2. CC を **完全再起動**（cmd+Q → 再起動）。sandbox 設定は session start 時に読まれる
-3. `FIRECRAWL_API_KEY` 環境変数が未設定の可能性。`.zshrc` を確認
+1. Possible JSON syntax error. Verify with `jq -e '.' ~/.claude/settings.json`
+2. **Fully restart CC** (cmd+Q → restart). Sandbox settings are read at session start
+3. `FIRECRAWL_API_KEY` env var may not be set. Check `.zshrc`
 
-### 別のドメインが必要になった
+### Need a different domain
 
-`allowedDomains` 配列に追加するだけ。CC 2.1.113+ では `*.example.com` の wildcard も使えるが、**漏れの可視性のため明示列挙を推奨**。
+Just add it to the `allowedDomains` array. In CC 2.1.113+, `*.example.com` wildcards are also supported, but **explicit enumeration is recommended for leak visibility**.
 
-### sandbox を一時的に外したい
+### Want to temporarily disable sandbox
 
-`"enabled": false` にする。または `--no-sandbox` flag で起動。ただし security 後退するため一時利用に限る。
+Set `"enabled": false`. Or launch with `--no-sandbox` flag. This is a security regression, so limit to temporary use only.
 
-## 関連
+## Related
 
-- `templates/sandbox-settings.json.template` — harness の reference 設定。**本 recipe と 29 ドメイン allowlist + 9 ドメイン denylist が完全同期**。新規プロジェクト (= `sandbox` 既存無し = Case A) で一括流用するなら、template の `sandbox` セクション全体をコピーすると確実。**既存 sandbox がある場合 (Case B) は jq merge を使う**こと (template の丸ごとコピーは既存 `filesystem` / `failIfUnavailable` を破壊する)
-- `CLAUDE.md` Permission Boundaries — sandbox 設定が AI による self-tampering 防止層と多層防御を構成
-- `.claude/rules/cross-repo-handoff.md` — Layer 1 (server-side) / Layer 2/3 (client-side) の redact 設計
-- CC v2.1.108+ sandbox 仕様: 公式 docs の `sandbox` セクション
+- `templates/sandbox-settings.json.template` — Harness reference configuration. **Fully synced with this recipe's 29-domain allowlist + 9-domain denylist**. For new projects (= no existing sandbox = Case A), copying the entire `sandbox` section from the template is reliable. **For Case B (existing sandbox), use jq merge** (copying the template wholesale destroys existing `filesystem` / `failIfUnavailable`)
+- `CLAUDE.md` Permission Boundaries — sandbox settings form a multi-layer defense with AI self-tampering prevention
+- `.claude/rules/cross-repo-handoff.md` — Layer 1 (server-side) / Layer 2/3 (client-side) redaction design
+- CC v2.1.108+ sandbox spec: official docs `sandbox` section
 
-## 履歴
+## History
 
-- 2026-05-21: 初版作成。外部プロジェクトで Firecrawl が 403 になった事例を契機に docs 化
+- 2026-05-21: Initial version. Documented following a case where Firecrawl returned 403 in an external project

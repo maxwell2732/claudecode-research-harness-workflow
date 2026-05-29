@@ -1,220 +1,216 @@
 # Vision High-Res Flow (Opus 4.7)
 
-Opus 4.7 の高解像度 vision 機能（短辺最大 2576px）を harness-review で活かすための
-典型シナリオ別フロー。
+Typical scenario-by-scenario flows for leveraging Opus 4.7's high-resolution vision capability (max short side 2576px) in harness-review.
 
-> **解像度上限**: 短辺 2576px が運用上の安全上限。それを超える画像は事前リサイズ推奨。
-> 詳細ガイドは [`docs/opus-4-7-vision-usage.md`](../../../docs/opus-4-7-vision-usage.md) を参照。
+> **Resolution limit**: 2576px on the short side is the operational safety limit. Images exceeding this should be resized in advance.
+> See [`docs/opus-4-7-vision-usage.md`](../../../docs/opus-4-7-vision-usage.md) for detailed guidance.
 
 ---
 
-## シナリオ 1: PDF ページレビュー
+## Scenario 1: PDF page review
 
-仕様書・設計ドキュメント・リリースノート等の PDF をレビュー対象にする場合。
+When using a spec, design document, release notes, etc. as the review target.
 
-### フロー
+### Flow
 
-1. **ページ範囲を特定する**
+1. **Identify the page range**
 
-   PDF 全体を一括で渡すと token 消費が大きくなるため、まずページ構成を把握する。
+   Passing an entire PDF at once increases token consumption, so first understand the page structure.
 
    ```
    Read tool: file_path="<path>.pdf", pages="1-5"
    ```
 
-2. **1 ページあたりの実効 DPI を確認する**
+2. **Check effective DPI per page**
 
-   PDF の DPI が高い場合、レンダリング後に短辺が 2576px を超えることがある。
-   超える場合は DPI を落として再エクスポートを依頼する（詳細は usage ガイド参照）。
+   When PDF DPI is high, the short side may exceed 2576px after rendering.
+   If it does, request re-export at lower DPI (see usage guide for details).
 
-3. **レビュー対象ページを Read で読み込む**
-
-   ```
-   Read tool: file_path="<path>.pdf", pages="<対象ページ範囲>"
-   ```
-
-   Read tool は pages パラメータで指定したページを vision モデルに渡す。
-   1 回あたり最大 20 ページまで指定可能。
-
-4. **Reviewer agent に渡す**
-
-   読み込んだページの内容を harness-review のレビューフロー（Step 2: 5 観点）へ流す。
-   Reviewer は視覚的なレイアウト・図表・コードスニペットを含めて評価する。
-
-5. **バッチ処理（ページ数が多い場合）**
-
-   20 ページを超える PDF は 20 ページ単位でバッチ分割する。
+3. **Load target pages with Read**
 
    ```
-   pages="1-20"  → レビュー → 指摘を記録
-   pages="21-40" → レビュー → 指摘を記録
+   Read tool: file_path="<path>.pdf", pages="<target page range>"
+   ```
+
+   The Read tool passes the pages specified in the pages parameter to the vision model.
+   Up to 20 pages can be specified at once.
+
+4. **Pass to Reviewer agent**
+
+   Feed the loaded page content into the harness-review review flow (Step 2: 5 perspectives).
+   The Reviewer evaluates including visual layouts, diagrams, and code snippets.
+
+5. **Batch processing (when page count is large)**
+
+   Split PDFs exceeding 20 pages into 20-page batches.
+
+   ```
+   pages="1-20"  → review → record findings
+   pages="21-40" → review → record findings
    ...
-   最後にまとめて verdict を統合する
+   Integrate verdicts at the end
    ```
 
-### 判定基準
+### Verdict criteria
 
-PDF レビューは reviewer_profile を `static` として扱い、以下を評価する:
+PDF review treats reviewer_profile as `static` and evaluates:
 
-| 観点 | チェック内容 |
-|------|------------|
-| **Quality** | 図表の説明が十分か、手順の前後関係が明確か |
-| **Accessibility** | 代替テキストがない画像のみページはないか |
-| **AI Residuals** | "TODO", "TBD", "Draft" 等の未完了マーカー |
+| Perspective | Check content |
+|-------------|--------------|
+| **Quality** | Is the diagram description sufficient? Is the sequence of steps clear? |
+| **Accessibility** | Are there pages with images only and no alt text? |
+| **AI Residuals** | Incomplete markers such as "TODO", "TBD", "Draft" |
 
 ---
 
-## シナリオ 2: 設計図（Architecture Diagram）レビュー
+## Scenario 2: Architecture diagram review
 
-システム構成図・ER 図・シーケンス図等の画像をレビュー対象にする場合。
+When using system diagrams, ER diagrams, sequence diagrams, etc. as the review target.
 
-### フロー
+### Flow
 
-1. **画像の解像度を確認する**
+1. **Check image resolution**
 
    ```bash
-   # macOS: sips で解像度確認
+   # macOS: check resolution with sips
    sips -g pixelWidth -g pixelHeight diagram.png
 
-   # ImageMagick がある場合
+   # With ImageMagick
    identify diagram.png
    ```
 
-   短辺が 2576px 以下なら Read tool で直接渡せる。
-   超えている場合は事前リサイズ（詳細は usage ガイド参照）。
+   When short side is 2576px or less, pass directly with Read tool.
+   When exceeding, resize in advance (see usage guide for details).
 
-2. **Read tool で画像を読み込む**
+2. **Load image with Read tool**
 
    ```
    Read tool: file_path="diagram.png"
    ```
 
-   Opus 4.7 は 2576px まで視認できるため、細かいラベルや矢印も解析できる。
+   Opus 4.7 can recognize up to 2576px, so even fine labels and arrows can be analyzed.
 
-3. **Reviewer agent に渡すコンテキストを準備する**
+3. **Prepare context to pass to Reviewer agent**
 
    ```
-   以下のアーキテクチャ図をレビューしてください。
-   対象: <システム名> の <図の種類（構成図 / ER 図 / シーケンス図 等）>
-   確認観点: <レビュー目的（整合性確認 / 変更差分確認 / セキュリティ確認 等）>
+   Please review the following architecture diagram.
+   Target: <diagram type (configuration/ER/sequence etc.)> of <system name>
+   Review perspective: <review purpose (consistency check/change diff check/security check etc.)>
    ```
 
-4. **評価項目**
+4. **Evaluation items**
 
-   | 観点 | チェック内容 |
-   |------|------------|
-   | **Security** | 認証フロー・認可境界・暗号化要件が図に反映されているか |
-   | **Quality** | コンポーネント間の依存関係が明確か、単一責任が保たれているか |
-   | **Performance** | ボトルネックになりやすい箇所（同期処理 / N+1 / キャッシュなし等）が可視化されているか |
+   | Perspective | Check content |
+   |-------------|--------------|
+   | **Security** | Are auth flow, authorization boundary, and encryption requirements reflected in the diagram? |
+   | **Quality** | Are inter-component dependencies clear? Is single responsibility maintained? |
+   | **Performance** | Are bottleneck-prone areas (sync processing / N+1 / no caching etc.) visualized? |
 
-5. **実装コードとの照合**
+5. **Cross-reference with implementation code**
 
-   設計図レビュー後、対応する実装コードを Code Review フローで照合し整合性を確認する。
+   After architecture diagram review, cross-reference with the corresponding implementation code using the Code Review flow to verify consistency.
 
 ---
 
-## シナリオ 3: UI スクリーンショットレビュー
+## Scenario 3: UI screenshot review
 
-Web / モバイル UI のスクリーンショットを `--ui-rubric` オプションで採点する場合。
+When scoring screenshots of Web/Mobile UI with the `--ui-rubric` option.
 
-### フロー
+### Flow
 
-1. **スクリーンショットを用意する**
+1. **Prepare screenshots**
 
-   対象ページ・コンポーネントのスクリーンショットを取得する。
-   Retina / HiDPI 環境では論理ピクセルの 2 倍サイズになることが多い。
+   Take screenshots of target pages/components.
+   In Retina/HiDPI environments, this is often twice the logical pixel size.
 
    ```bash
-   # macOS: screencapture コマンド
+   # macOS: screencapture command
    screencapture -x screenshot.png
 
-   # 解像度確認
+   # Check resolution
    sips -g pixelWidth -g pixelHeight screenshot.png
    ```
 
-2. **解像度を確認しリサイズ（必要に応じて）**
+2. **Check resolution and resize (if needed)**
 
-   短辺が 2576px を超える場合はリサイズする（詳細は usage ガイド参照）。
-   2576px 以下なら Read tool でそのまま渡せる。
+   Resize when short side exceeds 2576px (see usage guide for details).
+   When 2576px or less, pass directly with Read tool.
 
-3. **harness-review --ui-rubric で評価する**
+3. **Evaluate with harness-review --ui-rubric**
 
    ```
    /harness-review --ui-rubric
    ```
 
-   実行前に Read tool でスクリーンショットを読み込み、Reviewer agent に渡す:
+   Before execution, load the screenshot with Read tool and pass to Reviewer agent:
 
    ```
    Read tool: file_path="screenshot.png"
    ```
 
-4. **4 軸採点（ui-rubric.md 参照）**
+4. **4-axis scoring (see ui-rubric.md)**
 
-   | 軸 | 評価内容 |
-   |----|---------|
-   | **Design Quality** | ビジュアル階層・余白・カラー整合性 |
-   | **Originality** | 独自性・ブランド表現 |
-   | **Craft** | ピクセル精度・アニメーション・マイクロインタラクション |
-   | **Functionality** | ユーザーフローの完結性・エラー状態の考慮 |
+   | Axis | Evaluation |
+   |------|-----------|
+   | **Design Quality** | Visual hierarchy / whitespace / color consistency |
+   | **Originality** | Distinctiveness / brand expression |
+   | **Craft** | Pixel precision / animation / micro-interactions |
+   | **Functionality** | User flow completeness / error state consideration |
 
-5. **複数解像度の比較（モバイル / タブレット / デスクトップ）**
+5. **Multi-resolution comparison (mobile / tablet / desktop)**
 
-   各解像度のスクリーンショットを同一セッションで連続 Read し、
-   Reviewer agent にまとめてレスポンシブ対応を評価させる。
+   Continuously Read screenshots for each resolution in the same session and have the Reviewer agent evaluate responsive design together.
 
    ```
-   Read tool: file_path="mobile.png"    # 375×812 相当
-   Read tool: file_path="tablet.png"    # 768×1024 相当
-   Read tool: file_path="desktop.png"   # 1440×900 相当
+   Read tool: file_path="mobile.png"    # ~375×812
+   Read tool: file_path="tablet.png"    # ~768×1024
+   Read tool: file_path="desktop.png"   # ~1440×900
    ```
 
 ---
 
-## Reviewer Agent との繋ぎ方
+## Connecting to Reviewer Agent
 
-上記 3 シナリオのいずれでも、画像 / PDF を Read tool で読み込んだ後の
-Reviewer agent への接続は以下の共通パターンで行う。
+For any of the above 3 scenarios, after loading images/PDF with Read tool, connect to Reviewer agent with this common pattern.
 
-### breezing モードでの繋ぎ方
+### Connection in breezing mode
 
-Lead が Worker から vision 入力ありのタスクを受け取った場合:
+When Lead receives a task with vision input from Worker:
 
-1. Worker は `files_changed` に画像/PDF パスを含めて返す
-2. Lead は Read tool でそのパスを読み込み、vision コンテキストを付加してレビューを実行する
-3. Reviewer agent が `review-result.v1` スキーマで verdict を返す
+1. Worker returns with image/PDF paths included in `files_changed`
+2. Lead loads that path with Read tool and runs the review with vision context attached
+3. Reviewer agent returns verdict in `review-result.v1` schema
 
 ```json
-// Reviewer に渡す追加コンテキスト例
+// Example additional context passed to Reviewer
 {
   "vision_inputs": [
     { "type": "image", "path": "diagram.png", "role": "architecture_diagram" },
     { "type": "pdf",  "path": "spec.pdf",    "role": "specification", "pages": "1-10" }
   ],
-  "review_context": "画像・PDF を含む変更のレビュー"
+  "review_context": "Review of changes including images/PDF"
 }
 ```
 
-### 画像入力を受け取った場合の Reviewer の振る舞い
+### Reviewer behavior when receiving image input
 
-- Reviewer は画像入力を「通常の diff テキスト」と同等に扱い、`review-result.v1` を返す
-- `observations[].location` には `"diagram.png:全体"` / `"spec.pdf:p3"` のように記載する
-- 画像のみで critical / major を判定できない場合は `minor` または `recommendation` に留める
-- vision 入力の有無によって判定基準（critical / major / minor / recommendation）は変わらない
+- Reviewer treats image input the same as "normal diff text" and returns `review-result.v1`
+- In `observations[].location`, write as `"diagram.png: overall"` / `"spec.pdf: p3"` etc.
+- When critical/major cannot be determined from image alone, limit to `minor` or `recommendation`
+- The verdict criteria (critical / major / minor / recommendation) do not change based on presence/absence of vision input
 
 ---
 
-## バッチ処理ガイドライン
+## Batch processing guidelines
 
-複数の画像 / PDF ページを連続してレビューする場合:
+When continuously reviewing multiple images/PDF pages:
 
-| 状況 | 推奨アプローチ |
-|------|--------------|
-| PDF 20 ページ以下 | 1 回の Read で全ページ指定 |
-| PDF 21 ページ以上 | 20 ページ単位でバッチ分割 → 指摘を統合 |
-| 画像 1〜5 枚 | 連続 Read → まとめてレビュー |
-| 画像 6 枚以上 | 5 枚単位でバッチ → verdict を最後に統合 |
-| 高解像度画像が混在 | 事前リサイズ後に処理（usage ガイド参照） |
+| Situation | Recommended approach |
+|-----------|---------------------|
+| PDF 20 pages or fewer | Specify all pages in one Read |
+| PDF 21+ pages | Split into 20-page batches → consolidate findings |
+| 1-5 images | Continuous Read → review together |
+| 6+ images | Batch by 5 → consolidate verdict at end |
+| High-resolution images mixed | Process after pre-resize (see usage guide) |
 
-バッチ処理では各バッチの `observations` を蓄積し、
-全バッチ完了後に `critical` / `major` の有無で最終 verdict を決定する。
+In batch processing, accumulate `observations` from each batch and determine the final verdict based on presence/absence of `critical` / `major` after all batches complete.

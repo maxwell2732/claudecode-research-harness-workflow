@@ -1,90 +1,90 @@
-# スキルカタログ
+# Skill Catalog
 
-スキル階層構造・全カテゴリ一覧・開発用スキルの参照ドキュメント。
+Reference document for skill hierarchy, all skill categories, and development skills.
 
-## スキル評価フロー
+## Skill Evaluation Flow
 
-> 💡 重いタスク（並列レビュー、CI修正ループ）では、スキルが `agents/` のサブエージェントを Task tool で並列起動します。
+> For heavy tasks (parallel review, CI fix loops), skills launch subagents from `agents/` in parallel using the Task tool.
 
-**作業を開始する前に、必ず以下のフローを実行すること:**
+**Before starting any work, always follow this flow:**
 
-1. **評価**: 利用可能なスキルを確認し、今回の依頼に該当するものがあるか評価
-2. **起動**: 該当するスキルがあれば、Skill ツールで起動してから作業開始
-3. **実行**: スキルの手順に従って作業を進める
+1. **Evaluate**: Check available skills and determine whether any match the current request
+2. **Invoke**: If a matching skill exists, invoke it with the Skill tool before starting work
+3. **Execute**: Follow the skill's steps to carry out the work
 
 ```
-ユーザーの依頼
+User request
     ↓
-スキルを評価（該当するものがあるか？）
+Evaluate skills (is there a matching one?)
     ↓
-YES → Skill ツールで起動 → スキルの手順に従う
-NO  → 通常の推論で対応
+YES → Invoke with Skill tool → Follow skill steps
+NO  → Handle with normal reasoning
 ```
 
-## スキル階層構造
+## Skill Hierarchy
 
-スキルは **親スキル（カテゴリ）** と **子スキル（具体的な機能）** の階層構造になっています。
+Skills are organized in a hierarchy of **parent skills (categories)** and **child skills (specific functions)**.
 
 ```
 skills/
-├── impl/                  # 実装（機能追加、テスト作成）
-├── harness-review/        # レビュー（品質、セキュリティ、パフォーマンス）
-├── verify/                # 検証（ビルド、エラー復旧、修正適用）
-├── setup/                 # 統合セットアップ（プロジェクト初期化、ツール設定、2-Agent、harness-mem、Codex CLI、ルールローカライズ）
-├── memory/                # メモリ管理（SSOT、decisions.md、patterns.md、SSOT昇格、記憶検索）
-├── troubleshoot/          # 診断・修復（エラー、CI障害含む）
-├── principles/            # 原則・ガイドライン（VibeCoder、差分編集）
-├── auth/                  # 認証・決済（Clerk、Supabase、Stripe）
-├── deploy/                # デプロイ（Vercel、Netlify、アナリティクス）
-├── ui/                    # UI（コンポーネント、フィードバック）
-├── handoff/               # ワークフロー（ハンドオフ、自動修正）
-├── notebookLM/            # ドキュメント（NotebookLM、YAML）
-└── maintenance/           # メンテナンス（クリーンアップ）
+├── impl/                  # Implementation (feature addition, test creation)
+├── harness-review/        # Review (quality, security, performance)
+├── verify/                # Verification (build, error recovery, fix application)
+├── setup/                 # Integrated setup hub (project initialization, tool configuration, 2-Agent, harness-mem, Codex CLI, rule localization)
+├── memory/                # Memory management (SSOT, decisions.md, patterns.md, SSOT promotion, memory search)
+├── troubleshoot/          # Diagnostics and repair (errors, including CI failures)
+├── principles/            # Principles and guidelines (VibeCoder, diff editing)
+├── auth/                  # Authentication and payments (Clerk, Supabase, Stripe)
+├── deploy/                # Deployment (Vercel, Netlify, analytics)
+├── ui/                    # UI (components, feedback)
+├── handoff/               # Workflow (handoff, auto-fix)
+├── notebookLM/            # Documentation (NotebookLM, YAML)
+└── maintenance/           # Maintenance (cleanup)
 ```
 
-**使い方:**
-1. 親スキルを Skill ツールで起動
-2. 親スキルがユーザーの意図に応じて適切な子スキル（doc.md）にルーティング
-3. 子スキルの手順に従って作業実行
+**How to use:**
+1. Invoke a parent skill with the Skill tool
+2. The parent skill routes to the appropriate child skill (doc.md) based on user intent
+3. Follow the child skill's steps to execute the work
 
-## 全スキルカテゴリ一覧
+## Full Skill Category List
 
-| カテゴリ | 用途 | トリガー例 |
+| Category | Purpose | Trigger examples |
 |---------|------|-----------|
-| work | タスク実装（スコープ自動判断、--codex 対応） | 「実装して」「全部やって」「/work」 |
-| breezing | Agent Teams で完全自動完走（--codex 対応） | 「チームで完走」「breezing」 |
-| impl | 実装、機能追加、テスト作成 | 「実装して」「機能追加」「コードを書いて」 |
-| harness-review | コードレビュー、品質チェック | 「レビューして」「セキュリティ」「パフォーマンス」 |
-| verify | ビルド検証、エラー復旧 | 「ビルド」「エラー復旧」「検証して」 |
-| setup | セットアップ統合ハブ（プロジェクト初期化、ツール設定、2-Agent、harness-mem、Codex CLI、ルールローカライズ） | 「セットアップ」「CLAUDE.md」「初期化」「CI setup」「2-Agent」「Cursor設定」「harness-mem」「codex-setup」 |
-| memory | SSOT管理、記憶検索、SSOT昇格、Cursor連携メモリ | 「SSOT」「decisions.md」「マージ」「SSOT昇格」「記憶検索」「harness-mem」 |
-| principles | 開発原則、ガイドライン | 「原則」「VibeCoder」「安全性」 |
-| auth | 認証、決済機能 | 「ログイン」「Clerk」「Stripe」「決済」 |
-| deploy | デプロイ、アナリティクス | 「デプロイ」「Vercel」「GA」 |
-| ui | UIコンポーネント生成 | 「コンポーネント」「ヒーロー」「フォーム」 |
-| handoff | ハンドオフ、自動修正 | 「ハンドオフ」「PMに報告」「自動修正」 |
-| notebookLM | ドキュメント生成 | 「ドキュメント」「NotebookLM」「スライド」 |
-| troubleshoot | 診断と修復（CI障害含む） | 「動かない」「エラー」「CIが落ちた」 |
-| maintenance | ファイル整理 | 「整理して」「クリーンアップ」 |
-| harness-plan-brief | 着工前 Plan Brief HTML 生成 (Phase 65.1) | 「plan brief」「計画概要」「計画レビュー」 |
-| harness-accept | 引き渡し時 Acceptance Demo HTML 生成 (Phase 65.2) | 「受け入れ判断」「ship/wait/reject」「検収レビュー」 |
-| harness-progress | 進捗 Tracker HTML 生成 + 自動再生成 (Phase 65.4) | 「進捗確認」「進捗ボード」「dashboard」 |
+| work | Task implementation (automatic scope determination, --codex support) | "implement this", "do everything", "/work" |
+| breezing | Fully automated execution with Agent Teams (--codex support) | "run as a team", "breezing" |
+| impl | Implementation, feature addition, test creation | "implement this", "add feature", "write code" |
+| harness-review | Code review, quality check | "review this", "security", "performance" |
+| verify | Build verification, error recovery | "build", "error recovery", "verify" |
+| setup | Integrated setup hub (project initialization, tool configuration, 2-Agent, harness-mem, Codex CLI, rule localization) | "setup", "CLAUDE.md", "initialize", "CI setup", "2-Agent", "Cursor config", "harness-mem", "codex-setup" |
+| memory | SSOT management, memory search, SSOT promotion, Cursor-linked memory | "SSOT", "decisions.md", "merge", "SSOT promotion", "memory search", "harness-mem" |
+| principles | Development principles, guidelines | "principles", "VibeCoder", "safety" |
+| auth | Authentication, payment features | "login", "Clerk", "Stripe", "payment" |
+| deploy | Deployment, analytics | "deploy", "Vercel", "GA" |
+| ui | UI component generation | "component", "hero", "form" |
+| handoff | Handoff, auto-fix | "handoff", "report to PM", "auto-fix" |
+| notebookLM | Document generation | "document", "NotebookLM", "slides" |
+| troubleshoot | Diagnostics and repair (including CI failures) | "not working", "error", "CI failed" |
+| maintenance | File organization | "organize", "cleanup" |
+| harness-plan-brief | Pre-start Plan Brief HTML generation (Phase 65.1) | "plan brief", "plan overview", "plan review" |
+| harness-accept | Acceptance Demo HTML generation at handoff (Phase 65.2) | "acceptance decision", "ship/wait/reject", "acceptance review" |
+| harness-progress | Progress Tracker HTML generation + auto-regeneration (Phase 65.4) | "check progress", "progress board", "dashboard" |
 
-## 開発用スキル（非公開）
+## Development Skills (Non-public)
 
-以下のスキルは開発・実験用であり、リポジトリには含まれません（.gitignore で除外）：
+The following skills are for development and experimentation only and are not included in the repository (excluded via .gitignore):
 
 ```
 skills/
-├── test-*/      # テスト用スキル
-└── x-promo/     # X投稿作成スキル（開発用）
+├── test-*/      # Test skills
+└── x-promo/     # X post creation skill (for development)
 ```
 
-これらのスキルは個別の開発環境でのみ使用し、プラグイン配布には含めないこと。
+These skills are for use in individual development environments only and must not be included in plugin distributions.
 
-## 関連ドキュメント
+## Related Documents
 
-- [CLAUDE.md](../CLAUDE.md) - プロジェクト開発ガイド（概要）
-- [docs/CLAUDE-feature-table.md](./CLAUDE-feature-table.md) - Claude Code 新機能活用テーブル
-- [docs/CLAUDE-commands.md](./CLAUDE-commands.md) - 主要コマンド一覧
-- [.claude/rules/skill-editing.md](../.claude/rules/skill-editing.md) - スキルファイル編集ルール
+- [CLAUDE.md](../CLAUDE.md) - Project development guide (overview)
+- [docs/CLAUDE-feature-table.md](./CLAUDE-feature-table.md) - Claude Code new feature utilization table
+- [docs/CLAUDE-commands.md](./CLAUDE-commands.md) - Key commands list
+- [.claude/rules/skill-editing.md](../.claude/rules/skill-editing.md) - Skill file editing rules

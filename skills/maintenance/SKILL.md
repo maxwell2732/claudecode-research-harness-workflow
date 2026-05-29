@@ -2,7 +2,6 @@
 name: maintenance
 description: "File cleanup and archiving. Tidies up bloated Plans.md, session-log.md, old logs, and state files. Trigger: /maintenance, cleanup, archive, organize, split session-log. Do NOT load for: implementation, review, release, new feature development."
 description-en: "File cleanup and archiving. Tidies up bloated Plans.md, session-log.md, old logs, and state files. Trigger: /maintenance, cleanup, archive, organize, split session-log. Do NOT load for: implementation, review, release, new feature development."
-description-ja: "ファイル整理・アーカイブ・ログ圧縮を担当。散らかった Plans.md / session-log.md / 古いログ / state ファイルを整頓する。`/maintenance`, メンテ, 整理して, アーカイブして, 古いタスク移動, session-log 分割, ログ掃除 で起動。実装・レビュー・リリース・新機能開発には使わない。"
 allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 argument-hint: "[plans|session-log|logs|state|all] [--dry-run]"
 user-invocable: true
@@ -11,57 +10,55 @@ effort: low
 
 # Maintenance
 
-散らかったファイルを整頓する単一目的スキル。auto-cleanup-hook が警告を出した時、
-または定期的な家事として呼び出す。
+A single-purpose skill for tidying up messy files. Invoke when auto-cleanup-hook issues a warning,
+or as routine housekeeping.
 
-> **前提**: 破壊的操作（アーカイブ移動・行削除）の前に Plans.md / session-log.md の
-> 重要情報が SSOT (decisions.md / patterns.md) に昇格済みか確認する。
-> 未同期なら `/memory sync` を先に走らせる。
+> **Prerequisite**: Before destructive operations (archiving, line deletion), confirm that important
+> information in Plans.md / session-log.md has been promoted to SSOT (decisions.md / patterns.md).
+> If not yet synced, run `/memory sync` first.
 
 ## Quick Reference
 
-| サブコマンド | 対象 | 典型トリガー |
-|------------|------|-------------|
-| `maintenance plans` | Plans.md 完了タスクのアーカイブ移動 | 「Plans.md 整理」「古いタスクを移動」 |
-| `maintenance session-log` | session-log.md の月別分割 | 「session-log 分割」「ログが長い」 |
-| `maintenance logs` | `.claude/logs/` の古いファイル削除 | 「ログ掃除」「30日以上前のログ消して」 |
-| `maintenance state` | `agent-trace.jsonl` / `harness-usage.json` のトリム | 「trace 肥大」「state 圧縮」 |
-| `maintenance all` | 上記4つを順に実行 | 「全部整理」「総掃除」 |
+| Subcommand | Target | Typical Trigger |
+|-----------|--------|----------------|
+| `maintenance plans` | Archive completed tasks in Plans.md | "Organize Plans.md", "Move old tasks" |
+| `maintenance session-log` | Monthly split of session-log.md | "Split session-log", "Log is too long" |
+| `maintenance logs` | Delete old files in `.claude/logs/` | "Clean up logs", "Delete logs older than 30 days" |
+| `maintenance state` | Trim `agent-trace.jsonl` / `harness-usage.json` | "Trace is bloated", "Compress state" |
+| `maintenance all` | Run all 4 in sequence | "Organize everything", "Full cleanup" |
 
-`--dry-run` を付けると何をするかだけ列挙して実行しない。自由記述の指示（例:
-「古いアーカイブも消して」「この session-log だけ残して」）は Step 1 で
-受け付けて Step 2 以降の処理パラメータに反映する。
+Add `--dry-run` to only list what would be done without executing. Free-form instructions (e.g.
+"delete old archives too", "keep only this session-log") are parsed in Step 1 and applied
+to processing parameters in Step 2 and beyond.
 
-## 実行手順
+## Execution Steps
 
-1. **ユーザー指示のパース**: サブコマンド + 自由記述（除外対象、保存先、日数閾値）を抽出
-2. **SSOT 同期チェック**: `.claude/state/.ssot-synced-this-session` が無ければ
-   `/memory sync` を促す（Plans.md を触る場合のみ必須）
-3. **参照ファイルを開く**: `${CLAUDE_SKILL_DIR}/references/cleanup.md` を読み対応セクションを実行
-4. **Before/After を報告**: 行数と削除件数を表示して完了
+1. **Parse user instructions**: Extract subcommand + free-form details (exclusions, destination, day threshold)
+2. **SSOT sync check**: If `.claude/state/.ssot-synced-this-session` is absent,
+   prompt to run `/memory sync` (required only when touching Plans.md)
+3. **Open reference file**: Read `${CLAUDE_SKILL_DIR}/references/cleanup.md` and execute the relevant section
+4. **Report Before/After**: Display line counts and deletion counts when done
 
-## サブコマンド詳細
+## Subcommand Details
 
-対象ごとの実行手順・閾値・アーカイブ先は [cleanup.md](./references/cleanup.md) を参照。
+For execution steps, thresholds, and archive destinations per target, see [cleanup.md](./references/cleanup.md).
 
-## auto-cleanup-hook との連携
+## Integration with auto-cleanup-hook
 
-PostToolUse hook (`scripts/auto-cleanup-hook.sh` / Go 版 `auto_cleanup_hook.go`) は
-Plans.md・session-log.md・CLAUDE.md の行数超過を検知すると
-`/maintenance で古いタスクをアーカイブすることを推奨します` と feedback を返す。
-この警告を見たら該当サブコマンドを実行する。
+The PostToolUse hook (`scripts/auto-cleanup-hook.sh` / Go version `auto_cleanup_hook.go`) detects
+line count overruns in Plans.md, session-log.md, and CLAUDE.md and returns
+`Recommend archiving old tasks with /maintenance` as feedback.
+When you see this warning, run the relevant subcommand.
 
-## 注意事項
+## Notes
 
-- **進行中タスクは動かさない**: `cc:WIP`, `pm:依頼中`, `cursor:依頼中` はアーカイブ対象外
-- **アーカイブ先ディレクトリは固定**: `.claude/memory/archive/` — 別の場所に移すときは
-  ユーザーに確認する
-- **バックアップ**: 200 行超のファイルを編集する前に `cp <file> <file>.bak.$(date +%s)` で
-  ローカルバックアップを取る
-- **CLAUDE.md は警告のみ**: 自動編集しない。分割提案だけ出す
+- **Do not move in-progress tasks**: `cc:WIP`, `pm:requested`, `cursor:requested` are excluded from archiving
+- **Archive destination directory is fixed**: `.claude/memory/archive/` — confirm with user before moving elsewhere
+- **Backup**: Before editing files over 200 lines, take a local backup with `cp <file> <file>.bak.$(date +%s)`
+- **CLAUDE.md is warning-only**: Do not auto-edit. Only propose a split
 
-## 関連スキル
+## Related Skills
 
-- `memory` — Plans.md 整理前の SSOT 昇格（decisions.md / patterns.md 更新）
-- `harness-setup` — セットアップ直後の定期メンテは `harness-setup` 経由でも呼べる
-- `session-init` — セッション開始時のメンテ推奨通知を制御
+- `memory` — SSOT promotion before organizing Plans.md (updates decisions.md / patterns.md)
+- `harness-setup` — Periodic maintenance after setup can also be invoked via `harness-setup`
+- `session-init` — Controls maintenance recommendation notifications at session start

@@ -1,38 +1,38 @@
 # Claude Code Setup: MCP, Telemetry, Provider Guidance
 
-最終更新: 2026-05-05
+Last updated: 2026-05-05
 
-Claude Code 2.1.120 以降で増えた setup / MCP / telemetry / provider 周辺の運用ガイド。
+An operational guide for setup / MCP / telemetry / provider areas that have grown since Claude Code 2.1.120.
 
-## ひとことで
+## In a Nutshell
 
-Harness は Claude Code の新機能を隠さず案内するが、公式設定の意味を置き換えない。
-MCP の常時ロード、telemetry、provider、Windows shell、deferred tools は、用途ごとに小さく opt-in する。
+Harness guides users through new Claude Code features without replacing the meaning of official settings.
+MCP always-load, telemetry, providers, Windows shell, and deferred tools should each be opted into in small, purpose-specific increments.
 
-## たとえると
+## Analogy
 
-Claude Code は工具箱で、Harness は作業手順書。
-工具箱の中身を勝手に作り替えるのではなく、「この作業ではこの工具を出しておく」と案内する。
+Claude Code is the toolbox; Harness is the work procedure guide.
+Rather than replacing the contents of the toolbox, Harness guides users on "which tools to have ready for this task."
 
 ## Setup checklist
 
-| 項目 | Harness guidance |
+| Item | Harness guidance |
 |------|------------------|
-| `${CLAUDE_EFFORT}` | skill 本文で現在の effort を参照する時だけ使う。effort の決定は呼び出し側に残す |
-| MCP `alwaysLoad` | 毎ターン必須の少数ツールだけ `true`。大きい server は deferred のまま |
-| `claude plugin prune` | plugin uninstall 後の孤立 dependency cleanup。まず `--dry-run` |
-| `claude project purge` | project state を消す強い cleanup。まず `--dry-run` または `--interactive` |
-| `ANTHROPIC_BEDROCK_SERVICE_TIER` | Bedrock 利用者だけが provider 環境で設定。Harness default には入れない |
-| `claude_code.skill_activated.invocation_trigger` | telemetry では skill 起動理由を区別して見る |
-| PowerShell primary shell | Windows では PowerShell primary を前提に案内し、Bash 固定の例を避ける |
-| forked skills / subagents deferred tools | 初回 turn で deferred tools が必要な workflow では、明示的に tool discovery できる書き方にする |
+| `${CLAUDE_EFFORT}` | Use only to reference the current effort level within a skill body. Leave the effort decision to the caller |
+| MCP `alwaysLoad` | Set `true` only for a small number of core tools needed every turn. Keep large servers deferred |
+| `claude plugin prune` | Cleanup for orphaned dependencies after plugin uninstall. Run `--dry-run` first |
+| `claude project purge` | Strong cleanup that deletes project state. Run `--dry-run` or `--interactive` first |
+| `ANTHROPIC_BEDROCK_SERVICE_TIER` | Only set by Bedrock users in provider environments. Do not include in Harness defaults |
+| `claude_code.skill_activated.invocation_trigger` | In telemetry, distinguish the reason a skill was activated |
+| PowerShell primary shell | On Windows, guide based on PowerShell primary and avoid Bash-only examples |
+| Forked skills / subagents deferred tools | For workflows that need deferred tools on the first turn, write them so tool discovery can be done explicitly |
 
 ## Effort guidance
 
-`${CLAUDE_EFFORT}` は、skill 本文から現在の effort level を参照するための変数。
-これは「skill が自分で effort を決める」ためではなく、「今どの effort で呼ばれているかを説明や分岐に使う」ためのもの。
+`${CLAUDE_EFFORT}` is a variable for referencing the current effort level from within a skill body.
+This is not for "the skill to decide its own effort," but for "using the current effort level in explanations and branching."
 
-使ってよい例:
+Acceptable uses:
 
 ```md
 Current effort: `${CLAUDE_EFFORT}`.
@@ -40,30 +40,30 @@ If effort is low, keep the review to confirmed blockers.
 If effort is xhigh, include adversarial checks.
 ```
 
-避ける例:
+Patterns to avoid:
 
-- skill 本文で「必ず xhigh に変更して」と要求する
-- user / parent workflow の effort 指定を無視する
-- `${CLAUDE_EFFORT}` が空の時に失敗扱いにする
+- Requiring "always change to xhigh" within the skill body
+- Ignoring the effort specified by the user / parent workflow
+- Treating an empty `${CLAUDE_EFFORT}` as a failure
 
 ## MCP `alwaysLoad`
 
-MCP tool search は context 節約のために tool schema を遅延ロードする。
-`alwaysLoad: true` は、この遅延から server を除外し、session start で常に tool を見えるようにする設定。
+MCP tool search uses lazy-loading of tool schemas to save context.
+`alwaysLoad: true` excludes a server from this lazy loading, making its tools visible from session start.
 
-使う場面:
+When to use:
 
-- 毎ターン使う小さな core tool server
-- workflow の最初の一手で必ず必要な server
-- tool search では発見が遅れて作業品質が落ちる少数 server
+- Small core tool servers used every turn
+- Servers that are required on the very first step of a workflow
+- A small number of servers whose discovery via tool search would degrade work quality
 
-避ける場面:
+When to avoid:
 
-- tool 数が多い server
-- たまにしか使わない integration
-- 大きな schema を持つ database / observability server
+- Servers with many tools
+- Integrations that are only occasionally used
+- Database / observability servers with large schemas
 
-例:
+Example:
 
 ```json
 {
@@ -79,95 +79,93 @@ MCP tool search は context 節約のために tool schema を遅延ロードす
 
 ## Plugin cleanup
 
-`claude plugin prune` は、plugin dependency として自動インストールされたが、今は不要になった plugin を消す cleanup。
-直接インストールした plugin を勝手に消す用途ではない。
+`claude plugin prune` is a cleanup command that removes plugins that were auto-installed as plugin dependencies but are no longer needed.
+It is not intended to remove plugins that the user installed directly.
 
-推奨:
+Recommended:
 
 ```bash
 claude plugin prune --dry-run
 claude plugin prune -y
 ```
 
-Harness setup では、uninstall 後の案内として出す。
-初期セットアップや release 手順の中で無条件実行しない。
+In Harness setup, present this as guidance after an uninstall.
+Do not run it unconditionally during initial setup or release procedures.
 
 ## Project state cleanup
 
-`claude project purge [path]` は、Claude Code が project に持つ transcripts、tasks、file history、config entry を削除する強い cleanup。
+`claude project purge [path]` is a strong cleanup command that deletes transcripts, tasks, file history, and config entries that Claude Code holds for a project.
 
-推奨:
+Recommended:
 
 ```bash
 claude project purge . --dry-run
 claude project purge . --interactive
 ```
 
-使う場面:
+When to use:
 
-- project を archive する
-- team handoff 前に古い local state を消す
-- project path / owner が変わり、古い状態が邪魔になっている
+- Archiving a project
+- Clearing old local state before a team handoff
+- When the project path / owner has changed and old state is getting in the way
 
-避ける場面:
+When to avoid:
 
-- 現在進行中の作業が残っている
-- transcript や task queue を証跡として残す必要がある
-- 「なんとなく軽くしたい」だけで、削除対象を確認していない
+- When work is still in progress
+- When transcripts or task queues need to be preserved as an audit trail
+- When you just want to "lighten things up" without reviewing what will be deleted
 
 ## Provider guidance
 
-`ANTHROPIC_BEDROCK_SERVICE_TIER` は Bedrock 利用時の provider 側 tuning に関わる環境変数として扱う。
-Harness の plugin default、template、shared project settings には既定値として入れない。
+`ANTHROPIC_BEDROCK_SERVICE_TIER` should be treated as an environment variable related to provider-side tuning when using Bedrock.
+Do not include it as a default value in Harness plugin defaults, templates, or shared project settings.
 
-理由:
+Reasons:
 
-- Bedrock を使わない利用者には不要
-- team / account / region によって正しい値が変わる
-- provider 設定は user / organization の責任境界に近い
+- Not needed by users who don't use Bedrock
+- The correct value varies by team / account / region
+- Provider settings are close to the responsibility boundary of the user / organization
 
-Bedrock guidance は、Claude Code 側の `CLAUDE_CODE_USE_BEDROCK` / `ANTHROPIC_*` 系と、
-Codex 側の provider 設定を混ぜない。
+Bedrock guidance must not mix Claude Code's `CLAUDE_CODE_USE_BEDROCK` / `ANTHROPIC_*` environment variables with Codex-side provider settings.
 
 ## Telemetry guidance
 
-`claude_code.skill_activated.invocation_trigger` は、skill がどう起動したかを見るための telemetry attribute。
+`claude_code.skill_activated.invocation_trigger` is a telemetry attribute for seeing how a skill was activated.
 
-代表値:
+Representative values:
 
-| 値 | 意味 |
+| Value | Meaning |
 |----|------|
-| `user-slash` | ユーザーが slash command として明示起動 |
-| `claude-proactive` | Claude が文脈から proactive に起動 |
-| `nested-skill` | 他の skill / workflow から内部起動 |
+| `user-slash` | User explicitly launched as a slash command |
+| `claude-proactive` | Claude launched proactively from context |
+| `nested-skill` | Launched internally from another skill / workflow |
 
-Harness では、media / announcement 系のような `user-invocable: false` skill が
-`claude-proactive` 前提にならないようにする。
-期待する起動は `user-slash` または `nested-skill`。
+In Harness, ensure that `user-invocable: false` skills such as media / announcement types do not default to assuming `claude-proactive` activation.
+The expected activation types are `user-slash` or `nested-skill`.
 
 ## Windows shell guidance
 
-Windows では、PowerShell tool が有効な場合は PowerShell primary shell として扱う。
-Git Bash 固定の案内は避ける。
+On Windows, treat PowerShell as the primary shell when the PowerShell tool is enabled.
+Avoid guidance that assumes Git Bash exclusively.
 
-書き方:
+Writing guidelines:
 
-- `pwsh` / PowerShell 前提の例を併記する
-- POSIX shell 固有の `export` だけで終わらせない
-- path separator や quoting の違いを意識する
+- Include `pwsh` / PowerShell-based examples
+- Do not end with POSIX shell-only `export` commands
+- Be mindful of differences in path separators and quoting
 
 ## Forked skills / subagents and deferred tools
 
-`context: fork` skill や subagent でも deferred tools が必要になる。
-workflow 本文では、初回 turn で使う tool を曖昧にせず、必要なら tool discovery を明示する。
+`context: fork` skills and subagents may also need deferred tools.
+In workflow bodies, do not leave the tools needed on the first turn ambiguous — explicitly document tool discovery if needed.
 
-例:
+Examples:
 
-- WebFetch が必要なら、allowed-tools / tools に含める
-- MCP tool が必要なら server 名と用途を明記する
-- 初回 turn で tool が見えない可能性を前提に、検索・確認の手順を書く
+- If WebFetch is needed, include it in allowed-tools / tools
+- If an MCP tool is needed, specify the server name and its purpose
+- Write steps for searching and confirming tools, assuming they may not be visible on the first turn
 
-これにより、forked context の最初の判断で「使えるはずの tool がない」と誤判定しにくくなる。
+This reduces the risk of incorrectly concluding "the tool I need isn't available" at the start of a forked context's first decision.
 
 ## Sources
 

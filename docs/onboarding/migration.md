@@ -24,7 +24,7 @@ OpenCode files, symlinks, project state, or harness-mem data.
 | Codex local skills | Duplicate frontmatter names or old aliases can route Codex to stale skills. | `scripts/setup-codex.sh --user` remains the safe fallback even after direct plugin smoke exists. | Backups live under `${CODEX_HOME:-$HOME/.codex}/backups/setup-codex`. |
 | Codex symlinks | Old symlink installs can break when the source checkout moves or on Windows. | Current setup prefers copied skill directories. | Re-run `scripts/setup-codex.sh --user`; restore inspected backups only if needed. |
 | OpenCode files | Existing `.opencode/skills`, commands, plugins, and `AGENTS.md` may be replaced by setup. | OpenCode stays `internal-compatible`; runtime parity is not claimed. | Timestamped backups such as `.opencode/skills.backup.<timestamp>` and `.opencode/plugins/harness-bootstrap.mjs.backup.<timestamp>`. |
-| harness-mem state | Memory continuity can span Claude Code and Codex sessions. | `memory DB を削除しない`; the report does not read or delete DB contents. | Keep `~/.harness-mem/` and project `.harness-mem/state/`; use `harness mem doctor`, and only run purge with explicit confirmation. |
+| harness-mem state | Memory continuity can span Claude Code and Codex sessions. | do not delete the memory DB; the report does not read or delete DB contents. | Keep `~/.harness-mem/` and project `.harness-mem/state/`; use `harness mem doctor`, and only run purge with explicit confirmation. |
 
 ## Compatibility Contract
 

@@ -1,123 +1,121 @@
-# 認知負荷を下げる 3 つの HTML 画面 (Phase 65)
+# 3 HTML Surfaces for Reducing Cognitive Load (Phase 65)
 
-Claude が「何を考えて」「今どこにいて」「何ができたか」を、エンジニアじゃない人でも 3 秒で把握できるようにする 3 つの HTML 画面。
+Three HTML screens that let even non-engineers grasp in 3 seconds "what Claude is thinking," "where it is now," and "what it accomplished."
 
-## やりたいこと
+## Goal
 
-AI と一緒に開発するとき、コミットログや Plans.md (=タスク一覧マークダウン) を読み続けるのは認知負荷が高い。
-発注者・プロデューサー・経営者が、進行中の AI 開発を **ブラウザで開いてひと目で判断できる** 1 枚紙の HTML を 3 種類提供する。
+When developing alongside AI, continuously reading commit logs and Plans.md (= task list markdown) creates high cognitive load.
+Provide 3 one-page HTML screens that project sponsors, producers, and managers can **open in a browser and judge at a glance** during live AI development.
 
-| Surface | 何のため | いつ見る |
-|---------|----------|----------|
-| **Plan Brief** (着工前) | 「Claude はこう理解した。これで進めて OK?」 | 実装前の承認 |
-| **Progress Tracker** (工事中) | 「今どこまで進んで、いつ終わる見込み?」 | 任意のタイミング (自動再生成) |
-| **Acceptance Demo** (引き渡し時) | 「この成果物、受け取りますか?」 | 実装完了後の検収 |
+| Surface | Purpose | When to view |
+|---------|---------|--------------|
+| **Plan Brief** (before start) | "This is Claude's understanding. OK to proceed?" | Approval before implementation |
+| **Progress Tracker** (in progress) | "How far along, and when is it expected to finish?" | Any time (auto-regenerated) |
+| **Acceptance Demo** (at handoff) | "Do you accept this deliverable?" | Acceptance check after implementation |
 
-## やり方
+## How to use
 
 ### Plan Brief (1st surface)
 
 ```bash
-# Claude セッション中に
+# During a Claude session
 /harness-plan-brief
 ```
 
-Claude が以下を 1 枚 HTML にまとめる:
-- ユーザー要求の Claude 側理解
-- 選択肢 (やり方が複数あれば each option)
-- リスク (ハマりそうな箇所)
-- 受け入れ条件 (acceptance_criteria)
-- 確信度 (0-100、根拠付き)
+Claude summarizes the following into a single HTML page:
+- Claude's understanding of the user's request
+- Options (each option if multiple approaches exist)
+- Risks (potential problem areas)
+- Acceptance criteria
+- Confidence level (0–100 with rationale)
 
-ユーザーは「OK で進めて」「ここを修正」「質問あり」を返す。
-判断は `personal-preference.v1` schema で記録 (sha256 ハッシュ付き)。
+The user responds with "proceed," "modify this," or "I have a question."
+Decisions are recorded in `personal-preference.v1` schema (with sha256 hash).
 
 ### Progress Tracker (2nd surface)
 
 ```bash
-# 進捗確認
+# Check progress
 /harness-progress
 ```
 
-または PostToolUse hook が Edit/Write/Bash 発火時に **60 秒に 1 回** 自動再生成。
+Or the PostToolUse hook auto-regenerates **once every 60 seconds** when Edit/Write/Bash fires.
 
-表示内容:
-- progress_pct (cc:完了 / 総タスク × 100)
-- 現在の WIP タスク
-- 直近完了タスク 5 件
-- 未着手タスク 5 件
-- drift alert (5 種、severity 色分け: 赤=critical / 黄=warn / 青=info)
+Display contents:
+- progress_pct (cc:done tasks / total tasks × 100)
+- Current WIP task
+- Last 5 completed tasks
+- Next 5 pending tasks
+- Drift alerts (5 types, severity color-coded: red=critical / yellow=warn / blue=info)
 
 ### Acceptance Demo (3rd surface)
 
 ```bash
-# 実装完了後
+# After implementation completes
 /harness-accept
 ```
 
-Claude が以下を 1 枚 HTML にまとめる:
-- 判定 (ship / wait / reject の 3 択)
-- 受け入れ条件の検証 (Plan Brief の各項目に「確認済み」「未確認」マーク)
-- 未検証の留保事項
-- 過去の問題パターン履歴
-- 提示成果物のリスト
+Claude summarizes the following into a single HTML page:
+- Verdict (3 choices: ship / wait / reject)
+- Acceptance criteria verification (each Plan Brief item marked "confirmed" or "unconfirmed")
+- Unverified reservations
+- Past issue pattern history
+- List of presented deliverables
 
-ユーザーは accept / override / reject を返す。
-判断は `acceptance-decision.v1` で記録、Plan Brief と **同じ user_request_hash** で graph join 可能。
+The user responds with accept / override / reject.
+Decisions are recorded in `acceptance-decision.v1` and can be graph-joined with Plan Brief using the **same `user_request_hash`**.
 
-## 気をつけること
+## Notes
 
-### 1. Plan Brief と Acceptance Demo は user_request_hash で連結される
+### 1. Plan Brief and Acceptance Demo are linked by user_request_hash
 
-Plan Brief 起動時に「ユーザー要求文」の sha256 ハッシュを取り、record に保存。
-Acceptance Demo も同じハッシュを取って record に保存。
-**この 2 record は同 hash で `mcp__harness__harness_mem_search` から graph join 可能**。
+When Plan Brief is launched, the sha256 hash of the "user request text" is taken and saved in the record.
+Acceptance Demo takes the same hash and saves it in the record.
+**These 2 records can be graph-joined from `mcp__harness__harness_mem_search` using the same hash.**
 
-「あの時のあのプラン、結果どうなった?」を後から完全に振り返れる仕組み。
+This enables a complete retrospective: "What happened to that plan we made back then?"
 
-### 2. Progress Tracker の rate limit (60 秒)
+### 2. Progress Tracker rate limit (60 seconds)
 
-PostToolUse hook が大量の Edit/Write を引き起こす場面 (large refactor) でも、HTML 再生成は 60 秒に 1 回までに制限される。
-state file: `.claude/state/progress-last-regen.txt` (epoch seconds)。
+Even in scenarios where PostToolUse hook triggers large numbers of Edit/Write operations (large refactor), HTML regeneration is limited to once every 60 seconds.
+State file: `.claude/state/progress-last-regen.txt` (epoch seconds).
 
-### 3. drift alert は session 内で蓄積、永続化しない
+### 3. Drift alerts accumulate within session; not persisted
 
-5 種の alert (scope-creep / time-overrun / repeated-failure / cost-warning / high-risk-file) は、
-1 セッション内の状態を Progress Tracker HTML に表示するもの。
-**メモリには永続化しない** (issue #87 方針、Lead プロセス in-memory のみ)。
+The 5 alert types (scope-creep / time-overrun / repeated-failure / cost-warning / high-risk-file) display in-session state in the Progress Tracker HTML.
+**They are not persisted to memory** (Issue #87 policy; Lead process in-memory only).
 
-過去 alert への user 判断は `progress-past-judgments.sh` で集計し「過去 N 件中 M 件で同様の提案を断っています」を表示するが、
-こちらは別途 `alert-judgment.v1` record として permanent storage する設計余地あり (本フェーズ未実装)。
+Past user judgments on alerts are aggregated by `progress-past-judgments.sh` and displayed as "You declined a similar proposal N out of M times in the past," but this has design space for separate `alert-judgment.v1` record permanent storage (not implemented in this phase).
 
-### 4. クライアント情報の取り扱い
+### 4. Client information handling
 
-cross-project search を有効化する `--cross-project-group <name>` flag を使った場合、
-**3 層 redaction** (Layer 2a 辞書 + Layer 2b NER + Layer 3 final scan) が自動適用される。
-詳細: [cross-project-safety.md](cross-project-safety.md)
+When the `--cross-project-group <name>` flag enabling cross-project search is used,
+**3-layer redaction** (Layer 2a dictionary + Layer 2b NER + Layer 3 final scan) is automatically applied.
+Details: [cross-project-safety.md](cross-project-safety.md)
 
-## 関連ファイル
+## Related files
 
-| ファイル | 用途 |
-|---------|------|
+| File | Purpose |
+|------|---------|
 | `skills/harness-plan-brief/` | Plan Brief skill (Phase 65.1) |
 | `skills/harness-accept/` | Acceptance Demo skill (Phase 65.2) |
 | `skills/harness-progress/` | Progress Tracker skill (Phase 65.4) |
 | `templates/html/plan-brief.html.template` | Plan Brief HTML template |
 | `templates/html/accept.html.template` | Acceptance Demo HTML template |
 | `templates/html/progress.html.template` | Progress Tracker HTML template |
-| `scripts/render-html.sh` | mustache 風 template renderer (`--with-redaction` flag 対応) |
-| `scripts/plan-brief-record-decision.sh` | Plan Brief 判断記録 |
-| `scripts/accept-record-decision.sh` | Acceptance Demo 判断記録 |
+| `scripts/render-html.sh` | Mustache-style template renderer (supports `--with-redaction` flag) |
+| `scripts/plan-brief-record-decision.sh` | Plan Brief decision recorder |
+| `scripts/accept-record-decision.sh` | Acceptance Demo decision recorder |
 | `scripts/progress-snapshot.sh` | Plans.md → snapshot JSON |
-| `scripts/progress-detect-drift.sh` | 5 alert kind 検出 |
-| `scripts/progress-past-judgments.sh` | 過去判断 lookup |
-| `scripts/hook-handlers/posttool-progress-regen.sh` | PostToolUse 自動再生成 hook |
+| `scripts/progress-detect-drift.sh` | 5 alert type detector |
+| `scripts/progress-past-judgments.sh` | Past judgment lookup |
+| `scripts/hook-handlers/posttool-progress-regen.sh` | PostToolUse auto-regeneration hook |
 
-## 関連 schema
+## Related schemas
 
 - `plan-brief-context.v1` (Plan Brief render input)
 - `acceptance-context.v1` (Acceptance Demo render input)
 - `progress-snapshot.v1` (Progress Tracker render input)
-- `personal-preference.v1` (Plan Brief 判断記録)
-- `acceptance-decision.v1` (Acceptance Demo 判断記録)
+- `personal-preference.v1` (Plan Brief decision record)
+- `acceptance-decision.v1` (Acceptance Demo decision record)
 - `progress-alert.v1` (drift alert)

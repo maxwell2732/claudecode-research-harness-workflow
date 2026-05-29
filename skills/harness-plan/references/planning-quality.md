@@ -1,276 +1,276 @@
-# 計画品質契約 — harness-plan 標準フロー
+# Planning Quality Contract — harness-plan Standard Flow
 
-`harness-plan` は、ユーザーが渡した情報をそのまま作業表へ変換しない。
-計画作成や大きな task 追加では、最新情報、既存仕様、記憶、TeamAgent / サブエージェントによる複数視点の議論でふるいにかけ、
-このプロダクトに取り入れるべき要素だけを Plans.md の task contract にする。
+`harness-plan` does not convert user-provided information directly into a work plan.
+For plan creation and significant task additions, it filters through the latest information, existing specifications, memory, and TeamAgent / sub-agent multi-perspective discussions,
+and only converts elements worth incorporating into this product into Plans.md task contracts.
 
-これは独立サブコマンドではない。`create` と、影響の大きい `add` の標準品質ゲートである。
+This is not an independent subcommand. It is the standard quality gate for `create` and high-impact `add` operations.
 
-## Step 0: 適用判断
+## Step 0: Applicability determination
 
-次に当てはまる場合は、この品質契約を使う。
+Use this quality contract in the following cases.
 
-- `create` で新しい plan を作る
-- `add` で product behavior / API / data model / 権限 / 課金 / 外部連携 / 配布面に影響する task を足す
-- ユーザーが外部プロダクト、競合、仕様案、改善案、比較材料を渡した
-- 既存仕様、Plans.md、記憶、過去 decision と衝突する可能性がある
-- ユーザーが「最大火力」「徹底比較」「中立採点」「デグレ防止」などを求めた
-- 単発・軽微ではなく、複数 task / 複数 file / 複数 session / product behavior / API / data model / 権限 / 課金 / 外部連携 / 配布面 / セキュリティに影響する
+- Creating a new plan with `create`
+- Adding tasks with `add` that affect product behavior / API / data model / permissions / billing / external integrations / distribution surfaces
+- User has provided external products, competitors, specification proposals, improvement ideas, or comparison materials
+- There is a risk of conflict with existing specifications, Plans.md, memory, or past decisions
+- User requests "full power", "thorough comparison", "neutral scoring", "regression prevention", etc.
+- Not single-instance or lightweight, but affects multiple tasks / multiple files / multiple sessions / product behavior / API / data model / permissions / billing / external integrations / distribution surfaces / security
 
-`create` と product-impacting `add` では root `spec.md` を毎回読む。
-root `spec.md` がない consumer repo だけ、既存 project spec / `docs/spec/00-project-spec.md` に fallback する。
-出力には必ず `Spec delta` または `Spec skip reason` を含める。
-これは co-required planning output の契約であり、precedence は `spec.md > sub-spec > Plans.md` のまま維持する。
+For `create` and product-impacting `add`, read root `spec.md` every time.
+Fall back to existing project spec / `docs/spec/00-project-spec.md` only for consumer repos without root `spec.md`.
+Output must always include `Spec delta` or `Spec skip reason`.
+This is a co-required planning output contract, and precedence remains `spec.md > sub-spec > Plans.md`.
 
-non-trivial planning では TeamAgent またはサブエージェント検証を前提にする。
-Task tool が使える場合は必ず独立視点を走らせる。
-使えない場合は `サブエージェント未使用` と明示し、同じ観点を単独で分けて評価する。
-出力には `team_validation_mode` を必ず入れる。
+Non-trivial planning requires TeamAgent or sub-agent verification as a prerequisite.
+If the Task tool is available, always run independent perspectives.
+If unavailable, explicitly state "sub-agent not used" and evaluate the same perspectives separately.
+Always include `team_validation_mode` in the output.
 
-| mode | 使う場面 |
+| mode | When to use |
 |------|----------|
-| `not_required_lightweight` | typo / format / README / CHANGELOG / marker 更新 / status sync など軽量 task |
-| `native` | TeamAgent など runtime native の複数視点検証を使った |
-| `subagent` | Task サブエージェントを perspective ごとに使った |
-| `manual-pass` | OpenCode など Task unavailable の runtime で、同じ観点を単独で分けて評価した |
-| `unavailable` | 検証不能。non-trivial work を Required にしてはいけない |
+| `not_required_lightweight` | Lightweight tasks such as typo / format / README / CHANGELOG / marker updates / status sync |
+| `native` | Used runtime native multi-perspective verification such as TeamAgent |
+| `subagent` | Used Task sub-agents per perspective |
+| `manual-pass` | In a runtime where Task is unavailable like OpenCode; evaluated the same perspectives separately |
+| `unavailable` | Verification not possible. Must not make non-trivial work Required |
 
-次は軽く扱ってよい。
+The following can be treated lightly.
 
-- marker 更新だけの `update`
-- status 照合だけの `sync`
-- typo / format / README / CHANGELOG のみ
-- 既存 spec とテストで正解が固定されている狭い変更
+- `update` with only marker updates
+- `sync` with only status reconciliation
+- typo / format / README / CHANGELOG only
+- Narrow changes where the correct answer is fixed by existing spec and tests
 
-## Step 1: 入力分解
+## Step 1: Input decomposition
 
-ユーザーが渡した情報を、次の 4 つに分ける。
+Break user-provided information into the following 4 categories.
 
-| 分類 | 例 |
+| Category | Examples |
 |------|----|
-| 評価対象 | 外部プロダクト、競合機能、仕様案、設計方針、運用案 |
-| ユーザーの狙い | 何を良くしたいのか、何を避けたいのか |
-| 不確かな事実 | 最新性、価格、API、制約、競合状況、既存 repo 状態 |
-| 採用判断に必要な根拠 | 公式 docs、実測、既存仕様、記憶、テスト結果 |
+| Evaluation targets | External products, competitor features, specification proposals, design policies, operational plans |
+| User's intent | What they want to improve, what they want to avoid |
+| Uncertain facts | Recency, pricing, APIs, constraints, competitive situation, existing repo state |
+| Evidence needed for adoption decision | Official docs, measurements, existing specs, memory, test results |
 
-不明点があっても質問で止まらない。合理的に想定できる意図を先に評価し、どうしても判断が割れる場合だけ「判断分岐」として出す。
+Do not stop to ask questions even when unclear. First evaluate what the intent reasonably appears to be, and only present "decision branches" when judgment is truly contested.
 
-## Step 2: 最新情報の取得
+## Step 2: Get latest information
 
-外部事実が含まれる場合は WebSearch を使う。優先順位は次の通り。
+Use WebSearch when external facts are involved. Priority order:
 
-1. 公式ドキュメント、公式ブログ、リリースノート、GitHub repo
-2. 標準仕様、論文、一次情報に近い technical source
-3. 信頼できる比較記事、導入事例、issue / discussion
+1. Official documentation, official blogs, release notes, GitHub repos
+2. Standard specs, papers, technical sources close to primary information
+3. Reliable comparison articles, case studies, issues / discussions
 
-重要な事実は、できるだけ 2 ソース以上で確認する。
-矛盾した場合は、どの点が矛盾しているかを整理して、採用判断への影響を明示する。
+Verify important facts against at least 2 sources when possible.
+If contradictions arise, organize what is contradicted and explicitly state the impact on the adoption decision.
 
-WebSearch が使えない、またはネットワークが失敗した場合は、次のように扱う。
+When WebSearch is unavailable or network fails, handle as follows.
 
-- `最新情報: 未検証`
-- ローカル根拠だけで暫定評価する
-- final で「ここは Web 確認が残る」と明示する
+- `Latest information: unverified`
+- Evaluate provisionally based only on local evidence
+- Explicitly state "web verification still pending" in the final output
 
-## Step 3: ローカル正本の確認
+## Step 3: Verify local source of truth
 
-プロダクトへ取り入れる提案は、必ず既存の正本と照合する。
+Any proposal to incorporate into the product must be cross-referenced with the existing source of truth.
 
-最低限確認するもの:
+Minimum checks:
 
 ```bash
 cat Plans.md
-rg -n "関連キーワード" README.md README_ja.md CLAUDE.md docs skills scripts tests
+rg -n "related keywords" README.md README_ja.md CLAUDE.md docs skills scripts tests
 rg -n "\"(lint|format)\"|eslint|prettier|biome|oxlint|dprint|ruff|black|isort|gofmt|go vet|cargo fmt|cargo clippy" package.json pyproject.toml go.mod Cargo.toml Makefile .github/workflows scripts docs 2>/dev/null
 find docs -maxdepth 3 -type f | sort
 git status --short --branch
 ```
 
-見る観点:
+Perspectives to check:
 
-- 既存の product promise と矛盾しないか
-- 既存の skill role / trigger / allowed-tools と矛盾しないか
-- Plans.md の未完了タスクと競合しないか
-- 配布 mirror、Codex mirror、OpenCode mirror、i18n に影響しないか
-- 仕様正本があるなら、Plans.md より先に spec SSOT を更新すべきか
-- root `spec.md` の product contract と Plans.md の task contract が分離されているか
-- source code changes を含む plan で lint / formatter baseline があるか。未設定なら implementation の前に setup task が必要か
+- Does it conflict with existing product promises?
+- Does it conflict with existing skill role / trigger / allowed-tools?
+- Does it conflict with incomplete tasks in Plans.md?
+- Does it affect distribution mirrors, Codex mirrors, OpenCode mirrors, or i18n?
+- If a specification source of truth exists, should root `spec.md` be updated before Plans.md?
+- Are the root `spec.md` product contract and Plans.md task contract separated?
+- For plans with source code changes, is there a lint / formatter baseline? If not, is a setup task needed before implementation?
 
-## Step 4: 記憶確認
+## Step 4: Memory check
 
-harness-mem、harness-recall、ローカル memory file が使える場合は、関連キーワードで過去判断を確認する。
-検索できる場合は現在の project / repo に絞る。cross-project 検索は、ユーザーが明示した場合だけ使う。
-この step は車輪の再発明防止確認であり、non-trivial planning では省略しない。
+If harness-mem, harness-recall, or local memory files are available, check past decisions with relevant keywords.
+When search is available, limit to the current project / repo. Use cross-project search only when the user explicitly requests it.
+This step is a reinvention-prevention check and must not be omitted in non-trivial planning.
 
-確認対象の例:
+Examples of what to check:
 
-- harness-mem / harness-recall の検索結果
+- harness-mem / harness-recall search results
 - `.claude/agent-memory/`
 - `.claude/state/memory-bridge-events.jsonl`
-- `.harness-mem/` の存在確認
-- repo 内 docs / Plans.md に残っている prior decision
+- Check for existence of `.harness-mem/`
+- Prior decisions recorded in repo docs / Plans.md
 
-注意:
+Notes:
 
-- harness-mem の DB を直接読む前提にしない
-- harness-mem が未セットアップ、unhealthy、検索不可なら「記憶未確認」と明示する
-- 記憶は現在の repo 状態より弱い。古い記憶と git / docs が衝突したら、現在の repo 状態を優先する
-- memory や検索で見えないものを absent と断定しない。`not_observed != absent`
+- Do not assume direct reading of the harness-mem DB
+- If harness-mem is not set up, unhealthy, or unsearchable, explicitly state "memory unverified"
+- Memory is weaker than the current repo state. If old memory and git / docs conflict, prioritize the current repo state
+- Do not assert something is absent just because memory or search cannot see it. `not_observed != absent`
 
-## Step 5: サブエージェント議論
+## Step 5: Sub-agent discussion
 
-non-trivial planning では、TeamAgent または Task サブエージェントを前提にする。
-Task tool が使える場合は、最低 3 つの独立視点を走らせる。各 agent には「read-only」「根拠付き」「結論先出し」を指定する。
-単発・軽微タスクだけは、この step を明示的に skip してよい。
-Product / Strategy、Architecture / Implementation、Security / Abuse、QA / Regression、Skeptic は perspective 名であり、agent_type 名ではない。
-利用可能な TeamAgent / Task サブエージェントに perspective として渡す。
-任意 agent spawn を要求しない。
+Non-trivial planning requires TeamAgent or Task sub-agents as a prerequisite.
+If the Task tool is available, run at least 3 independent perspectives. Specify "read-only", "evidence-backed", "conclusion first" for each agent.
+Only explicitly skip this step for single-instance or lightweight tasks.
+Product / Strategy, Architecture / Implementation, Security / Abuse, QA / Regression, Skeptic are perspective names, not agent_type names.
+Pass them as perspectives to available TeamAgent / Task sub-agents.
+Do not require arbitrary agent spawning.
 
-標準ロール:
+Standard roles:
 
-| Role | 目的 |
+| Role | Purpose |
 |------|------|
-| Product / Strategy | 採用価値、差別化、ユーザー価値、機会費用を見る |
-| Architecture / Implementation | 実装可能性、既存設計との整合、保守負荷を見る |
-| Security / Abuse | 権限、秘密情報、prompt injection、サプライチェーン、外部送信リスクを見る |
-| QA / Regression | デグレ、テスト、配布 mirror、互換性、実際に動くかを見る |
-| Skeptic | 採用しない理由、過剰投資、曖昧な前提を攻撃する |
+| Product / Strategy | Evaluate adoption value, differentiation, user value, opportunity cost |
+| Architecture / Implementation | Evaluate implementation feasibility, alignment with existing design, maintenance burden |
+| Security / Abuse | Evaluate permissions, secrets, prompt injection, supply chain, external transmission risks |
+| QA / Regression | Evaluate regressions, tests, distribution mirrors, compatibility, whether it works in practice |
+| Skeptic | Attack reasons not to adopt, over-investment, and vague assumptions |
 
-各 agent の出力に求めるもの:
+What to require from each agent's output:
 
-- 採用 / 条件付き採用 / 不採用
-- 根拠
-- 最大のリスク
-- 追加で確認すべきこと
-- 既存仕様や記憶との衝突
-- test / smoke / CI / review / release gate に落とすべき DoD
+- Adopt / conditional adopt / reject
+- Evidence
+- Largest risk
+- Additional items to verify
+- Conflicts with existing specifications or memory
+- DoD to incorporate into test / smoke / CI / review / release gate
 
-議論のまとめ方:
+How to summarize the discussion:
 
-1. 合意点を抽出する
-2. 対立点を残す
-3. 自分の判断を出す
-4. Required / Recommended / Optional / Reject に分類する
+1. Extract points of agreement
+2. Retain points of disagreement
+3. Present your own judgment
+4. Classify as Required / Recommended / Optional / Reject
 
-サブエージェントが使えない場合は、単独で同じ 5 視点を明示的に分けて評価し、`サブエージェント未使用` と書く。
+If sub-agents are unavailable, explicitly evaluate the same 5 perspectives separately on your own and write "sub-agent not used".
 
-## Step 5.5: 実装プラン検証ゲート
+## Step 5.5: Implementation plan verification gate
 
-実装プランは、次の 5 つをすべて満たすまで Required にしない。
+Do not mark an implementation plan Required until all of the following 5 are satisfied.
 
-| Gate | 見ること | 落ちた場合 |
+| Gate | What to check | If failed |
 |------|----------|------------|
-| Spec / Plans Fit | root `spec.md`、sub-spec、`Plans.md` の順序と矛盾しない | `Spec delta` を先に出すか Reject |
-| Memory / Wheel Check | harness-mem / harness-recall / repo memory に同種判断や既存 task がないか | 既存案を再利用、差分だけ task 化 |
-| Product Fit | プロダクト目的と primary user workflow に直結するか | docs / external workflow / Optional へ逃がす |
-| Security Fit | 権限、秘密情報、外部送信、dependency、branch/release gate を弱めないか | spike / security task / Reject |
-| Quality Baseline Fit | source code changes に対して lint / formatter / CI command で品質を Yes/No 判定できるか | setup task を先行、または formatter_baseline の skip reason を残す |
-| Works In Practice | test / smoke / CI / review / release closeout で Yes/No 判定できるか | DoD を作り直す |
+| Spec / Plans Fit | No conflict with order of root `spec.md`, sub-spec, `Plans.md` | Output `Spec delta` first or Reject |
+| Memory / Wheel Check | No similar decisions or existing tasks in harness-mem / harness-recall / repo memory | Reuse existing proposal, task only the diff |
+| Product Fit | Directly tied to product purpose and primary user workflow? | Defer to docs / external workflow / Optional |
+| Security Fit | Does not weaken permissions, secrets, external transmission, dependencies, or branch/release gates? | spike / security task / Reject |
+| Quality Baseline Fit | Can quality be determined Yes/No with lint / formatter / CI commands for source code changes? | Add setup task first, or leave formatter_baseline skip reason |
+| Works In Practice | Can it be determined Yes/No with test / smoke / CI / review / release closeout? | Redo the DoD |
 
-この gate は「手戻りを減らすための前工程」であり、感想レビューではない。
-落ちた gate は必ず Plans.md の DoD、Depends、または `[needs-spike]` に反映する。
-Quality Baseline Fit は、formatter や linter を雑に追加するための口実ではない。
-未設定かつ source code changes を含む plan では、実装 task の前に setup task を置く。
-setup task の DoD は config、package script / CI command、validation command の 3 点を含める。
-planning では package install しない。導入は harness-work が setup task として行う。
-広範囲の一括 reformat は、ユーザーが明示した場合か、その setup task の scope に入っている場合だけ実行する。
-Security Fit は secret の実読取を要求しない。
-`.env`、tokens、private keys、customer data などの read が必要になる場合は Risk Gate として止める。
-既存の guardrail、config shape、audit evidence、テスト、GitHub / CI metadata など、秘密値を読まない surface で確認する。
+This gate is "pre-work to reduce rework" and is not a feelings-based review.
+Any gate that fails must be reflected in the DoD, Depends, or `[needs-spike]` in Plans.md.
+Quality Baseline Fit is not an excuse to carelessly add formatters or linters.
+For plans with source code changes where it is not configured, place a setup task before implementation tasks.
+The setup task's DoD must include config, package script / CI command, and validation command (3 items).
+Do not install packages during planning. Installation is done by harness-work as a setup task.
+Broad-scope batch reformatting is only executed when the user explicitly requests it or it is within that setup task's scope.
+Security Fit does not require actual reading of secrets.
+Stop at a Risk Gate if reading `.env`, tokens, private keys, customer data, etc., becomes necessary.
+Verify using surfaces that do not read secret values: existing guardrails, config shapes, audit evidence, tests, GitHub / CI metadata, etc.
 
-## Step 6: 中立採点レビュー
+## Step 6: Neutral scoring review
 
-採点は 5 点満点。5 点は良い状態、1 点は弱い状態として扱う。
+Score on a 5-point scale. 5 is a good state; 1 is a weak state.
 
-| 軸 | 5 点 | 3 点 | 1 点 |
+| Axis | 5 | 3 | 1 |
 |----|-----|-----|-----|
-| Product Fit | 導入先プロダクトの核に直結 | 便利だが周辺的 | 別製品や運用で足りる |
-| Evidence Strength | 一次情報 + 実測 + 既存根拠あり | 片方だけ確認 | 推測中心 |
-| User Value | 判断品質や実行速度が大きく上がる | 一部 workflow で有効 | 体感価値が薄い |
-| Implementation Feasibility | 小さく局所的 | 中規模だが管理可能 | 大規模で保守負荷大 |
-| Regression Safety | 低リスクでテスト可能 | 影響範囲あり | 既存 flow を壊しやすい |
-| Strategic Leverage | 長期の差別化になる | 便利機能止まり | 一過性 |
-| Security Safety | 権限や秘密情報を弱めず検証可能 | 注意点あり | 危険な権限緩和や未検証外部送信がある |
-| Works In Practice | smoke / CI / review で実証できる | 手動確認中心 | 動作確認が曖昧 |
+| Product Fit | Directly tied to the core of the deployment product | Useful but peripheral | Could be handled by a different product or operations |
+| Evidence Strength | Primary info + measurements + existing evidence | Only one side verified | Mostly speculation |
+| User Value | Significantly improves decision quality or execution speed | Effective in some workflows | Thin perceived value |
+| Implementation Feasibility | Small and localized | Medium-scale but manageable | Large-scale with high maintenance burden |
+| Regression Safety | Low risk and testable | Some impact scope | Likely to break existing flows |
+| Strategic Leverage | Leads to long-term differentiation | Stops at a convenience feature | Temporary |
+| Security Safety | Does not weaken permissions or secrets, and is verifiable | Some concerns | Dangerous permission loosening or unverified external transmission |
+| Works In Practice | Can be proven with smoke / CI / review | Mainly manual confirmation | Behavior confirmation is vague |
 
-補正ルール:
+Correction rules:
 
-- Evidence Strength が 2 以下なら Required 禁止
-- Regression Safety が 2 以下なら、先に spike / spec / test を置く
-- Security Safety が 2 以下なら Required 禁止
-- Works In Practice が 2 以下なら、DoD を作り直すか spike に落とす
-- Quality Baseline Fit が 2 以下で source code changes を含むなら、formatter_baseline setup task を Required dependency にする
-- Implementation Feasibility が 2 以下で User Value が 3 以下なら Reject 寄り
-- Product Fit が 2 以下なら、このプロダクトに入れず docs / external workflow に逃がす
+- Evidence Strength 2 or below: Required prohibited
+- Regression Safety 2 or below: Place spike / spec / test first
+- Security Safety 2 or below: Required prohibited
+- Works In Practice 2 or below: Redo DoD or demote to spike
+- Quality Baseline Fit 2 or below with source code changes: Make formatter_baseline setup task a Required dependency
+- Implementation Feasibility 2 or below and User Value 3 or below: Lean toward Reject
+- Product Fit 2 or below: Do not incorporate into this product; defer to docs / external workflow
 
-## Step 7: `$easy` 報告
+## Step 7: `$easy` report
 
-最終出力は、難しい評価をそのまま出さず、判断できる形に変換する。
+Transform difficult evaluations into a form where decisions can be made, rather than presenting them as-is in the final output.
 
-必須構成:
+Required structure:
 
 ```markdown
-ひとことで:
-{{採用判断を 1 文}}
+In a word:
+{{adoption decision in 1 sentence}}
 
-採点レビュー:
-| 案 | 点数 | 判定 | 根拠 | 未検証 |
+Scoring review:
+| Proposal | Score | Verdict | Evidence | Unverified |
 |----|------|------|------|--------|
 
-取り入れるべき提案:
-| 優先 | 提案内容 | 理由 | どうなるのか |
+Proposals to incorporate:
+| Priority | Proposal content | Reason | What changes |
 |------|----------|------|--------------|
 
-デグレ確認:
+Regression check:
 - team_validation_mode:
-- 仕様:
+- Specification:
 - Plans.md:
-- harness-mem / 記憶:
-- TeamAgent / サブエージェント:
+- harness-mem / memory:
+- TeamAgent / sub-agent:
 - product fit:
 - security:
 - works in practice:
 - formatter_baseline:
-- mirror / 配布:
+- mirror / distribution:
 - test:
 
-次にやること:
+Next steps:
 1. ...
 2. ...
 3. ...
 ```
 
-文体ルール:
+Writing style rules:
 
-- 結論を先に出す
-- 専門語はすぐ短く訳す
-- 「すごい」「革新的」などの空気で判断しない
-- 提案は 1〜3 個に絞る。候補を並べすぎない
-- 事実、推測、未検証を分ける
+- Lead with the conclusion
+- Immediately translate technical terms briefly
+- Do not judge based on vague impressions like "amazing" or "innovative"
+- Narrow proposals to 1-3. Do not list too many candidates.
+- Separate facts, speculation, and unverified items
 
-## Step 8: Plans.md / spec へ落とす時
+## Step 8: When converting to Plans.md / spec
 
-採用する案だけを task contract に変換する。
+Convert only adopted proposals into task contracts.
 
-順序:
+Order:
 
-1. root `spec.md` を読み、必要なら先に `Spec delta` として product contract を更新する
-2. source code changes があり lint / formatter baseline が未設定なら、formatter_baseline setup task を Required dependency として先に置く
-3. Plans.md に Required task だけを追加する
-4. 高リスク案には `[needs-spike]` を付ける
-5. 各 task に検証可能な DoD を置く
-6. TDD が必要な task には `[tdd:required]` を付ける
-7. mirror / i18n / package surface に影響する場合は、検証 task を別に置く
-8. spec 更新が不要なら `Spec skip reason` を task context / sprint contract に残す
-9. non-trivial planning では TeamAgent / サブエージェント検証結果、または `サブエージェント未使用` fallback と 5 gate の結果を task context に残す
-10. `team_validation_mode: unavailable` の plan は Required にしない。軽量 task だけ `not_required_lightweight` を許可する
+1. Read root `spec.md` and if needed, first update the product contract as `Spec delta`
+2. If source code changes have unset lint / formatter baseline, place formatter_baseline setup task as a Required dependency first
+3. Add only Required tasks to Plans.md
+4. Attach `[needs-spike]` to high-risk proposals
+5. Place a verifiable DoD with each task
+6. Attach `[tdd:required]` to tasks that require TDD
+7. For cases affecting mirror / i18n / package surfaces, add a separate verification task
+8. If no spec update is needed, leave `Spec skip reason` in task context / sprint contract
+9. For non-trivial planning, leave TeamAgent / sub-agent verification results or `sub-agent not used` fallback and 5 gate results in the task context
+10. Do not make plans with `team_validation_mode: unavailable` Required. Only allow `not_required_lightweight` for lightweight tasks
 
-`Spec delta` は agent が draft する。ユーザーに spec を一から書かせる前提にしない。
-`Spec delta` / `Spec skip reason` は Harness が生成し、consumer は承認・修正だけ行う。
+The agent drafts `Spec delta`. Do not expect the user to write the spec from scratch.
+Harness generates `Spec delta` / `Spec skip reason`; the consumer only approves or revises.
 
-禁止:
+Prohibited:
 
-- 仕様の正解条件が揺れているのに実装 task だけ作る
-- デグレ確認を task 化せずに「注意」で済ませる
-- source code changes を含むのに lint / formatter baseline 不在を無視して実装 task だけ作る
-- docs-only / mechanical task の `Spec skip reason` を省略する
+- Creating only implementation tasks while the correct specification conditions are still in flux
+- Settling regression checks with "please be careful" without making them a task
+- Creating only implementation tasks while ignoring the absence of lint / formatter baseline for plans with source code changes
+- Omitting `Spec skip reason` for docs-only / mechanical tasks

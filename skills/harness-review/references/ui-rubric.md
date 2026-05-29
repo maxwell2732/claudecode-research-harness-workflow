@@ -1,58 +1,58 @@
 # UI Rubric Reviewer Profile
 
-`harness-review --ui-rubric` で起動する、見た目品質に特化したレビュープロファイル。
-UI の出来栄えを「なんとなく」で終わらせず、4 軸を 0-10 で採点して判定する。
+Review profile specialized in visual quality, activated by `harness-review --ui-rubric`.
+Rather than ending UI quality assessment with vague impressions, score 4 axes from 0-10 to reach a verdict.
 
 ---
 
-## 4 軸の考え方
+## The 4 axes
 
 ### 1. Design Quality
 
-- 何を見るか: 情報の整理、余白、視線誘導、読みやすさ
-- 低い点になりやすい例: 文字が詰まりすぎる、要素の優先順位が伝わらない
-- 高い点になりやすい例: 何を見ればよいかが自然に伝わる
+- What to check: Information organization, whitespace, visual flow, readability
+- Likely low scores: Text is too cramped, priority of elements is unclear
+- Likely high scores: What to look at is conveyed naturally
 
 ### 2. Originality
 
-- 何を見るか: 既視感の少なさ、意図のある個性、表現の選び方
-- 低い点になりやすい例: どこにでもある定型レイアウトをそのまま使っている
-- 高い点になりやすい例: ブランドや課題に合った独自の見せ方がある
+- What to check: Distinctiveness, intentional personality, choice of expression
+- Likely low scores: Using a generic template layout as-is
+- Likely high scores: A unique presentation approach suited to the brand or challenge
 
 ### 3. Craft
 
-- 何を見るか: 細部の丁寧さ、揃え、間隔、タイポグラフィ、状態変化
-- 低い点になりやすい例: 微妙なズレ、揃っていない余白、雑な hover / active
-- 高い点になりやすい例: 細部まで一貫していて、雑味が少ない
+- What to check: Attention to detail, alignment, spacing, typography, state transitions
+- Likely low scores: Subtle misalignments, uneven spacing, rough hover/active states
+- Likely high scores: Consistently refined to the detail level, minimal roughness
 
 ### 4. Functionality
 
-- 何を見るか: 迷わず使えるか、主要導線が通るか、UI が実用に耐えるか
-- 低い点になりやすい例: ボタンやフォームの意図がわかりにくい、主要導線が切れている
-- 高い点になりやすい例: ユーザーが次に何をするか迷わない
+- What to check: Usability without confusion, main flows work, UI is practically viable
+- Likely low scores: Button or form intent is unclear, main flow is broken
+- Likely high scores: Users know what to do next without confusion
 
 ---
 
-## アンカー例（0 / 5 / 10）
+## Anchor examples (0 / 5 / 10)
 
-| 軸 | 0 点 | 5 点 | 10 点 |
-|---|---|---|---|
-| Design Quality | 何を見せたいか分からず、読みづらい | 最低限は読めるが、整理が弱い | 情報の優先順位と視線誘導が明確 |
-| Originality | 既製テンプレートのままに見える | 一部に工夫はあるが印象が弱い | 課題に合った個性があり、印象に残る |
-| Craft | 揃えや余白が乱れ、細部が粗い | 大きな破綻はないが、詰めが甘い | 余白、文字、状態変化まで丁寧に整っている |
-| Functionality | 主要導線が分かりにくく、使いにくい | 主要操作はできるが迷う場面がある | 主要導線が自然で、迷わず操作できる |
+| Axis | 0 points | 5 points | 10 points |
+|------|----------|----------|----------|
+| Design Quality | Unclear what is being shown; hard to read | Minimum readability but organization is weak | Information priority and visual flow are clear |
+| Originality | Looks like a stock template as-is | Some creativity but weak impression | Has personality suited to the challenge; memorable |
+| Craft | Alignment and spacing are off; details are rough | No major breakdowns but finishing is loose | Spacing, text, and state transitions are carefully refined |
+| Functionality | Main flow is unclear and hard to use | Main operations work but there are moments of confusion | Main flow is natural and operates without confusion |
 
 ---
 
-## 判定方法
+## Verdict method
 
-1. 4 軸をそれぞれ 0-10 で採点する
-2. `review.rubric_target` がある場合は、その値を軸ごとの閾値として使う
-3. `review.rubric_target` がない場合は、4 軸すべての default threshold=6 を使う
-4. 1 軸でも閾値未達なら `REQUEST_CHANGES`
-5. 全軸が閾値以上なら `APPROVE`
+1. Score each of the 4 axes from 0-10
+2. If `review.rubric_target` exists, use its values as per-axis thresholds
+3. If `review.rubric_target` is absent, use default threshold=6 for all 4 axes
+4. If any axis is below threshold → `REQUEST_CHANGES`
+5. If all axes meet threshold → `APPROVE`
 
-### `rubric_target` の例
+### `rubric_target` example
 
 ```json
 {
@@ -65,13 +65,13 @@ UI の出来栄えを「なんとなく」で終わらせず、4 軸を 0-10 で
 
 ---
 
-## 出力のしかた
+## Output format
 
-- `reviewer_profile` は必ず `"ui-rubric"` にする
-- `observations` には、点数を下げた理由を非専門家にも分かる日本語で書く
-- 各軸について、最低 1 つは「どこを直せば点が上がるか」を添える
+- Always set `reviewer_profile` to `"ui-rubric"`
+- In `observations`, write the reason for score reduction in terms understandable to non-experts
+- Include at least 1 "what to fix to raise the score" item per axis
 
-### 出力例
+### Output example
 
 ```json
 {
@@ -96,9 +96,9 @@ UI の出来栄えを「なんとなく」で終わらせず、4 軸を 0-10 で
 
 ---
 
-## 判定の注意点
+## Verdict notes
 
-- 派手さだけで高得点にしない
-- 「珍しい」だけで Originality を上げすぎない
-- 使いやすさが壊れている場合は Functionality を優先して厳しく見る
-- デザインの好みではなく、**意図と完成度** で判断する
+- Do not award high scores for flashiness alone
+- Do not over-score Originality for "unusual" alone
+- When usability is broken, prioritize Functionality and evaluate strictly
+- Judge based on **intent and completeness**, not design preference

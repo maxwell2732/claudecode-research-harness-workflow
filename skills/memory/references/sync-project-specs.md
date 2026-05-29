@@ -1,6 +1,6 @@
 # Sync Project Specs Reference
 
-**作業完了後に「Plans.md ちゃんと更新されてるかな？」と不安な時に実行します。**
+**Run this when you're worried after finishing work: "Did I update Plans.md correctly?"**
 
 ## When to Use
 
@@ -40,13 +40,13 @@ Aligns project specs/docs (e.g., `Plans.md`, `AGENTS.md`, `.claude/rules/*`) wit
 
 ### 1. Marker Normalization
 
-- **Standard**: `pm:依頼中`, `pm:確認済`
-- **Compatible**: `cursor:依頼中`, `cursor:確認済` (treated as synonyms)
+- **Standard**: `pm:requested`, `pm:confirmed`
+- **Compatible**: `cursor:requested`, `cursor:confirmed` (treated as synonyms)
 
 ### 2. State Transition Documentation
 
 ```
-pm:依頼中 → cc:WIP → cc:完了 → pm:確認済
+pm:requested → cc:WIP → cc:done → pm:confirmed
 ```
 
 ### 3. Handoff Routes Addition

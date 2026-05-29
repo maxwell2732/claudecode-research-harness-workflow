@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://claude-code-harness.local/schemas/plan-brief-context.v1.schema.json",
   "title": "plan-brief-context.v1",
-  "description": "Plan Brief 用の context 構造体。harness-plan-brief skill が harness-mem search 結果から組み立てる。",
+  "description": "Context structure for Plan Brief. The harness-plan-brief skill assembles this from harness-mem search results.",
   "type": "object",
   "required": [
     "schema",
@@ -114,7 +114,7 @@
           "phase": { "type": "string" },
           "outcome": {
             "type": "string",
-            "enum": ["cc:完了", "cc:WIP", "cc:TODO", "skipped", "unknown"]
+            "enum": ["cc:done", "cc:WIP", "cc:TODO", "skipped", "unknown"]
           },
           "relevance": { "type": "string" }
         }

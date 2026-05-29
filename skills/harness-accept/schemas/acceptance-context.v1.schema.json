@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://claude-code-harness.local/schemas/acceptance-context.v1.schema.json",
   "title": "acceptance-context.v1",
-  "description": "Acceptance Demo 用の context 構造体。harness-accept skill が Plan Brief 側 personal-preference.v1 と user_request_hash で join して組み立てる。",
+  "description": "Context structure for Acceptance Demo. The harness-accept skill assembles this by joining with the Plan Brief side personal-preference.v1 via user_request_hash.",
   "type": "object",
   "required": [
     "schema",
@@ -30,7 +30,7 @@
     "user_request_hash": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$",
-      "description": "Plan Brief 側 personal-preference.v1.data.user_request_hash と join するキー"
+      "description": "Join key matching personal-preference.v1.data.user_request_hash on the Plan Brief side"
     },
     "demo_artifacts": {
       "type": "array",
@@ -58,7 +58,7 @@
           "passed": { "type": "boolean" },
           "evidence": {
             "type": "string",
-            "description": "空文字列の場合 HTML 上で警告表示される (DoD c)"
+            "description": "If empty string, a warning is displayed in the HTML (DoD c)"
           }
         }
       }
@@ -98,7 +98,7 @@
     },
     "verified_criteria_items": {
       "type": "array",
-      "description": "Derived rendering helper for render-html.sh. Wraps verified_criteria with display attributes (status_label, evidence_warn 等). Compile / skill が populate。Optional: not required by canonical context.",
+      "description": "Derived rendering helper for render-html.sh. Wraps verified_criteria with display attributes (status_label, evidence_warn, etc.). Populated by compile/skill. Optional: not required by canonical context.",
       "items": {
         "type": "object",
         "required": ["name", "status_label"],

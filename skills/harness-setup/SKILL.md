@@ -19,124 +19,123 @@ effort: medium
 
 # Harness Setup
 
-Harness の統合セットアップスキル。
-以下の旧スキルを統合:
+Integrated Harness setup skill.
+Consolidates the following legacy skills:
 
-- `setup` — 統合セットアップハブ
-- `harness-init` — プロジェクト初期化
-- `harness-update` — Harness アップデート
-- `maintenance` — ファイル整理・クリーンアップ
+- `setup` — Integrated setup hub
+- `harness-init` — Project initialization
+- `harness-update` — Harness updates
+- `maintenance` — File organization and cleanup
 
 ## Quick Reference
 
-| サブコマンド | 動作 |
-|------------|------|
-| `/harness-setup init` | 新規プロジェクト初期化（CLAUDE.md + Plans.md + hooks + sync + doctor）|
-| `/harness-setup ci` | CI/CD パイプライン設定 |
-| `/harness-setup codex` | Codex CLI インストール・設定 |
-| `/harness-setup harness-mem` | harness-mem 統合・メモリ設定 |
-| `/harness-setup mirrors` | skills/ → 公開 mirror bundle 更新 |
-| `/harness-setup agents` | agents/ エージェント設定 |
-| `/harness-setup localize` | CLAUDE.md ルールのローカライズ |
+| Subcommand | Action |
+|------------|--------|
+| `/harness-setup init` | New project initialization (CLAUDE.md + Plans.md + hooks + sync + doctor) |
+| `/harness-setup ci` | CI/CD pipeline configuration |
+| `/harness-setup codex` | Codex CLI install and configuration |
+| `/harness-setup harness-mem` | harness-mem integration and memory setup |
+| `/harness-setup mirrors` | Update skills/ → public mirror bundle |
+| `/harness-setup agents` | agents/ agent configuration |
+| `/harness-setup localize` | Localize CLAUDE.md rules |
 
 > **Built-in slash discovery (CC 2.1.108+)**:
-> `/init` のような built-in slash command も発見される。
-> Harness 固有の bootstrap が必要な時だけ `/harness-setup init` と使い分ける。
+> Built-in slash commands like `/init` are also discovered.
+> Use `/harness-setup init` only when Harness-specific bootstrap is needed.
 
 > **Claude Code setup guidance (CC 2.1.120+)**:
-> MCP `alwaysLoad`、`${CLAUDE_EFFORT}`、`claude plugin prune`、`claude project purge`、
-> `ANTHROPIC_BEDROCK_SERVICE_TIER`、`claude_code.skill_activated.invocation_trigger`、
-> Windows PowerShell primary shell、forked skills / subagents の deferred tools は
-> `docs/claude-code-setup-mcp-telemetry-provider.md` を正本として扱う。
+> MCP `alwaysLoad`, `${CLAUDE_EFFORT}`, `claude plugin prune`, `claude project purge`,
+> `ANTHROPIC_BEDROCK_SERVICE_TIER`, `claude_code.skill_activated.invocation_trigger`,
+> Windows PowerShell primary shell, and deferred tools for forked skills/subagents are
+> handled with `docs/claude-code-setup-mcp-telemetry-provider.md` as the source of truth.
 
 > **Codex plugin workflows**:
-> Codex `/goal` と `Plans.md` を二重管理しない。
-> plugin-bundled hooks は opt-in、external agent import は ownership 明記、
-> MultiAgentV2 / `agents.max_threads = 8` は上限として扱い、
-> sticky environments / app-server artifacts は safe default を優先する。
-> Codex `0.130.0` stable の `codex remote-control`、large thread pagination、
-> selected-environment `view_image`、live app-server config refresh、
-> accurate turn diffs、plugin details bundled hooks、sharing discoverability controls は
-> `docs/codex-plugin-workflows-policy.md` を正本として扱う。
-> 詳細は `docs/codex-plugin-workflows-policy.md` を参照。
+> Do not dual-manage Codex `/goal` and `Plans.md`.
+> Plugin-bundled hooks are opt-in; external agent imports require explicit ownership declaration;
+> MultiAgentV2 / `agents.max_threads = 8` is treated as an upper limit;
+> sticky environments / app-server artifacts prioritize safe defaults.
+> For Codex `0.130.0` stable: `codex remote-control`, large thread pagination,
+> selected-environment `view_image`, live app-server config refresh,
+> accurate turn diffs, plugin details bundled hooks, sharing discoverability controls —
+> use `docs/codex-plugin-workflows-policy.md` as the source of truth.
 
-## サブコマンド詳細
+## Subcommand details
 
-### init — プロジェクト初期化
+### init — Project initialization
 
-新規プロジェクトに Harness を導入する。
+Introduces Harness to a new project.
 
-**生成ファイル**:
+**Generated files**:
 ```
 project/
-├── CLAUDE.md            # プロジェクト設定
-├── Plans.md             # タスク管理（空テンプレート）
+├── CLAUDE.md            # Project configuration
+├── Plans.md             # Task management (empty template)
 ├── .claude/
-│   ├── settings.json    # Claude Code 設定
-│   └── hooks.json       # フック設定（Go バイナリ）
+│   ├── settings.json    # Claude Code settings
+│   └── hooks.json       # Hook configuration (Go binary)
 └── hooks/
-    ├── pre-tool.sh      # 薄いシム（→ core/src/index.ts）
-    └── post-tool.sh     # 薄いシム（→ core/src/index.ts）
+    ├── pre-tool.sh      # Thin shim (→ core/src/index.ts)
+    └── post-tool.sh     # Thin shim (→ core/src/index.ts)
 ```
 
-**フロー**:
-1. プロジェクト種別を検出（Node.js/Python/Go/Rust/その他）
-2. 最小限の CLAUDE.md を生成
-3. Plans.md テンプレートを生成
-4. hooks.json を配置
-5. **Go バイナリ検証**: `harness version` でバイナリが利用可能か確認（v4.0 以降 Node.js 不要）
-6. **プラグインファイル同期**: `harness sync` で `.claude-plugin/` 配下のファイルを最新に同期
-7. **ヘルスチェック**: `harness doctor` で全チェック項目をパス。問題があれば修正案を提示
+**Flow**:
+1. Detect project type (Node.js/Python/Go/Rust/Other)
+2. Generate minimal CLAUDE.md
+3. Generate Plans.md template
+4. Place hooks.json
+5. **Go binary verification**: Confirm binary is available with `harness version` (Node.js not required since v4.0)
+6. **Plugin file sync**: Sync files under `.claude-plugin/` to latest with `harness sync`
+7. **Health check**: Pass all check items with `harness doctor`; present fix suggestions if issues found
 
-### Go バイナリ検証
+### Go binary verification
 
 ```bash
-# バイナリの存在と動作を確認
+# Confirm binary exists and works
 harness version
-# 例: harness v4.0.0 (go1.22.0, darwin/arm64)
+# Example: harness v4.0.0 (go1.22.0, darwin/arm64)
 ```
 
-v4.0 以降、Harness のコアエンジンは Go バイナリに移行した。
-Node.js は不要。バイナリは `bin/harness`（または PATH 上の `harness`）を使用する。
+Since v4.0, the Harness core engine has migrated to a Go binary.
+Node.js is not required. The binary uses `bin/harness` (or `harness` on PATH).
 
-### プラグインファイル同期
+### Plugin file sync
 
 ```bash
-# .claude-plugin/ 配下のファイルを最新に同期
+# Sync files under .claude-plugin/ to latest
 harness sync
 
-# 同期内容の確認のみ（変更なし）
+# Check sync contents only (no changes)
 harness sync --dry-run
 ```
 
-`harness sync` は skills/ の SSOT から各 mirror（codex/.codex/skills/、opencode/skills/）へ
-変更を伝播させる。init 後に必ず実行すること。
+`harness sync` propagates changes from the `skills/` SSOT to each mirror (`codex/.codex/skills/`, `opencode/skills/`).
+Always run after init.
 
-### ヘルスチェック
+### Health check
 
 ```bash
-# 全チェック項目を実行
+# Run all check items
 harness doctor
 ```
 
-`harness doctor` は以下を確認する:
+`harness doctor` verifies:
 
-| チェック項目 | 内容 |
-|------------|------|
-| バイナリ | `harness version` が正常に返るか |
-| プラグイン設定 | `.claude-plugin/plugin.json` の形式が正しいか |
-| hooks 配置 | hooks が正しいパスに存在するか |
-| mirror 同期 | skills/ と mirror の内容が一致しているか |
-| CLAUDE.md | 必須セクションが存在するか |
+| Check item | Content |
+|------------|---------|
+| Binary | Does `harness version` return normally? |
+| Plugin config | Is `.claude-plugin/plugin.json` format correct? |
+| Hooks placement | Do hooks exist at the correct paths? |
+| Mirror sync | Do `skills/` and mirror contents match? |
+| CLAUDE.md | Do required sections exist? |
 
-問題が検出された場合は修正コマンドを提示する。
+If issues are detected, fix commands are presented.
 
-### ci — CI/CD 設定
+### ci — CI/CD configuration
 
-GitHub Actions ワークフローを設定する。
+Configures GitHub Actions workflows.
 
 ```yaml
-# .github/workflows/ci.yml 生成例
+# Example .github/workflows/ci.yml generation
 name: CI
 on:
   push:
@@ -150,37 +149,37 @@ jobs:
       - run: npm ci && npm test
 ```
 
-### codex — Codex CLI 設定
+### codex — Codex CLI configuration
 
 ```bash
-# インストール確認（Codex CLI は Node.js ベース。Harness 本体とは別物）
+# Confirm installation (Codex CLI is Node.js based; separate from Harness itself)
 which codex || npm install -g @openai/codex
 
-# タイムアウトコマンド確認（macOS）
+# Check timeout command (macOS)
 TIMEOUT=$(command -v timeout || command -v gtimeout || echo "")
-# macOS の場合: brew install coreutils
+# macOS: brew install coreutils
 ```
 
-> **注意**: Harness v4.0 本体（`harness` コマンド）は Node.js 不要の Go バイナリ。
-> Codex CLI（`codex` コマンド）は別ツールであり、引き続き Node.js が必要。
+> **Note**: Harness v4.0 itself (`harness` command) is a Node.js-free Go binary.
+> Codex CLI (`codex` command) is a separate tool and still requires Node.js.
 
 ### Codex provider / model metadata policy (0.123.0+ / 0.130.0)
 
-Codex `0.123.0` 以降の provider / model guidance と、Codex `0.130.0` stable の Bedrock `aws login` guidance は
-`docs/codex-provider-setup-policy.md` を正本として扱う。
+For Codex `0.123.0`+ provider/model guidance and Codex `0.130.0` stable Bedrock `aws login` guidance,
+use `docs/codex-provider-setup-policy.md` as the source of truth.
 
-要点:
+Key points:
 
-- Bedrock を使う場合は、Codex built-in provider の `amazon-bedrock` を使う。
-- AWS profile は user / project の Codex config で `[model_providers.amazon-bedrock.aws]` に置く。
-- AWS console-login credentials from `aws login` profiles は AWS 側の profile material として扱う。
-- Harness は AWS credential、console-login cache、provider endpoint を書き込まない。
-- Harness の配布用 Codex config には `model = "gpt-5.4"` を setup default として固定しない。
-- Harness の配布用 Codex config には `model_provider = "amazon-bedrock"` も setup default として固定しない。
-- `gpt-5.4` は Codex 本体の current model metadata として扱い、古い `gpt-5.2-codex` などを推奨 sample として残さない。
-- Claude Code 側の `CLAUDE_CODE_USE_BEDROCK` / `ANTHROPIC_DEFAULT_*` / `modelOverrides` guidance と、Codex の `model_provider = "amazon-bedrock"` は混ぜない。
+- For Bedrock, use Codex built-in provider `amazon-bedrock`.
+- Place AWS profile in user/project Codex config under `[model_providers.amazon-bedrock.aws]`.
+- Treat AWS console-login credentials from `aws login` profiles as AWS-side profile material.
+- Harness does not write AWS credentials, console-login cache, or provider endpoints.
+- Do not fix `model = "gpt-5.4"` as the setup default in Harness distribution Codex config.
+- Do not fix `model_provider = "amazon-bedrock"` as the setup default in Harness distribution Codex config.
+- Treat `gpt-5.4` as Codex's current model metadata; do not leave old `gpt-5.2-codex` etc. as recommended samples.
+- Do not mix Claude Code's `CLAUDE_CODE_USE_BEDROCK` / `ANTHROPIC_DEFAULT_*` / `modelOverrides` guidance with Codex's `model_provider = "amazon-bedrock"`.
 
-Bedrock を使う user / project だけが、必要に応じて次を追加する:
+Only users/projects using Bedrock add the following as needed:
 
 ```toml
 model_provider = "amazon-bedrock"
@@ -189,46 +188,44 @@ model_provider = "amazon-bedrock"
 profile = "codex-bedrock"
 ```
 
-Claude Code 側の provider / MCP / telemetry guidance は
-`docs/claude-code-setup-mcp-telemetry-provider.md` を参照する。
-特に `ANTHROPIC_BEDROCK_SERVICE_TIER` は Bedrock 利用者の provider 環境だけで扱い、
-Harness の plugin default / template / shared project settings には入れない。
+For Claude Code provider/MCP/telemetry guidance, refer to `docs/claude-code-setup-mcp-telemetry-provider.md`.
+In particular, `ANTHROPIC_BEDROCK_SERVICE_TIER` is only for Bedrock users' provider environments and must not be included in Harness plugin defaults/templates/shared project settings.
 
 ### Codex app-server / plugin workflow policy (0.130.0)
 
-Codex `0.130.0` stable (`rust-v0.130.0`, published `2026-05-08T23:09:55Z`) の app-server / plugin workflow guidance は
-`docs/codex-plugin-workflows-policy.md` を正本として扱う。
+For Codex `0.130.0` stable app-server/plugin workflow guidance,
+use `docs/codex-plugin-workflows-policy.md` as the source of truth.
 
-要点:
+Key points:
 
-- `codex remote-control` は headless remotely controllable app-server の明示起動 entrypoint。Harness setup は remote-control defaults を config に書かない。
-- App-server clients can page large threads。長い loop / Breezing transcript は必要な page 範囲を確認する。
-- `view_image` は multi-environment session の selected environments 経由で file を解決できる。artifact report には environment / workdir を添える。
-- Live app-server threads pick up config changes without restart。ただし secret / provider / hook policy の変更は diff と verification で扱う。
-- Turn diffs stay accurate across `apply_patch` including partial failures。最終判断は `git diff` と tests で確認する。
-- Plugin details now show bundled hooks。install / share 前に bundled hooks を確認し、Harness bundled hooks は opt-in のままにする。
-- Plugin sharing exposes link metadata and discoverability controls。公開範囲と metadata は release surface として確認する。
-- Configurable OpenTelemetry trace metadata は debugging / triage 補助に限定し、個人情報・顧客情報・secret を入れない。
-- Built-in MCPs first-class runtime servers は Codex runtime owned surface として扱い、plugin-provided MCP と所有者を混ぜない。
-- `CODEX_HOME` environments TOML provider は user-level environment source。選択 environment を報告し、write turn は one primary environment に固定する。
-- Remove skills list extra roots に依存せず、Harness mirror install または `[[skills.config]]` path-based loading を明示する。
+- `codex remote-control` is the explicit launch entrypoint for headless remotely controllable app-server. Harness setup does not write remote-control defaults to config.
+- App-server clients can page large threads. Check the required page range for long loop/Breezing transcripts.
+- `view_image` can resolve files via selected environments in multi-environment sessions. Include environment/workdir in artifact reports.
+- Live app-server threads pick up config changes without restart. Handle secret/provider/hook policy changes with diff and verification.
+- Turn diffs stay accurate across `apply_patch` including partial failures. Confirm with `git diff` and tests.
+- Plugin details now show bundled hooks. Check bundled hooks before install/share; keep Harness bundled hooks opt-in.
+- Plugin sharing exposes link metadata and discoverability controls. Confirm scope and metadata as release surface.
+- Configurable OpenTelemetry trace metadata is limited to debugging/triage assistance; do not include personal info, customer info, or secrets.
+- Built-in MCPs are first-class runtime servers. Treat as Codex runtime-owned surface; do not mix owners with plugin-provided MCPs.
+- `CODEX_HOME` environments TOML provider is a user-level environment source. Report selected environment; fix write turns to one primary environment.
+- Do not rely on "remove skills list extra roots"; explicitly use Harness mirror install or `[[skills.config]]` path-based loading.
 
 ### Codex MCP diagnostics / plugin loading (0.123.0+)
 
-Codex `0.123.0` 以降の MCP diagnostics / plugin MCP loading guidance は
-`docs/codex-mcp-diagnostics.md` を正本として扱う。
+For Codex `0.123.0`+ MCP diagnostics/plugin MCP loading guidance,
+use `docs/codex-mcp-diagnostics.md` as the source of truth.
 
-要点:
+Key points:
 
-- Codex TUI では、普段は `/mcp` で軽量に server 状態だけ確認する。
-- MCP server が見えない、resources が出ない、resource templates が読めない時だけ `/mcp verbose` を使う。
-- `/mcp verbose` では diagnostics / resources / resource templates を確認する。
-- plugin 内 `.mcp.json` は `mcpServers` 形式と top-level server map 形式の両方を受け取れる前提で案内する。
-- 新規 plugin では共有しやすい `mcpServers` 形式を優先する。
-- 既存 plugin が top-level server map 形式なら、Codex 側の loading 改善を利用し、不要な書き換えを避ける。
-- Claude Code 側の `claude mcp ...`、`.claude/mcp.json`、hook `type: "mcp_tool"` guidance と混ぜない。
+- In the Codex TUI, normally check only server status lightly with `/mcp`.
+- Use `/mcp verbose` only when an MCP server is not visible, resources are not showing, or resource templates cannot be read.
+- With `/mcp verbose`, check diagnostics/resources/resource templates.
+- Guide on the assumption that plugin `.mcp.json` accepts both `mcpServers` format and top-level server map format.
+- For new plugins, prefer the more shareable `mcpServers` format.
+- For existing plugins in top-level server map format, use Codex's improved loading and avoid unnecessary rewrites.
+- Do not mix with Claude Code's `claude mcp ...`, `.claude/mcp.json`, hook `type: "mcp_tool"` guidance.
 
-`mcpServers` 形式:
+`mcpServers` format:
 
 ```json
 {
@@ -241,7 +238,7 @@ Codex `0.123.0` 以降の MCP diagnostics / plugin MCP loading guidance は
 }
 ```
 
-top-level server map 形式:
+Top-level server map format:
 
 ```json
 {
@@ -254,20 +251,20 @@ top-level server map 形式:
 
 ### Codex sandbox / execution policy (0.123.0+)
 
-Codex `0.123.0` 以降の `remote_sandbox_config` と `codex exec` shared flags guidance は
-`docs/codex-sandbox-execution-policy.md` を正本として扱う。
+For Codex `0.123.0`+ `remote_sandbox_config` and `codex exec` shared flags guidance,
+use `docs/codex-sandbox-execution-policy.md` as the source of truth.
 
-要点:
+Key points:
 
-- `remote_sandbox_config` は `requirements.toml` の host-specific sandbox policy として案内する。
-- remote devbox / ephemeral CI runner / shared host のように、remote environment ごとの `allowed_sandbox_modes` を比較して決める。
-- host matching は便利な分類だが、強い device authentication ではない。高リスク環境では broad wildcard を避ける。
-- Harness の配布用 `codex/.codex/config.toml` には organization-specific な `remote_sandbox_config` を書かない。
-- Codex `0.123.0` 以降は `codex exec` が root-level shared flags を継承するため、wrapper 側で重複した `--approval-policy` / `--sandbox` pairs を追加しない。
-- `scripts/codex-companion.sh task --write` が `--sandbox workspace-write` を付けるのは、Harness の「書き込みタスク」という意図を exec-local に変換しているためであり、root shared flags の重複転送ではない。
-- `scripts/codex/codex-exec-wrapper.sh` の `--full-auto` は 53.2.4 では維持する。変更する場合は別 task で approval / sandbox behavior の回帰テストを追加する。
+- Guide `remote_sandbox_config` as host-specific sandbox policy in `requirements.toml`.
+- Decide by comparing `allowed_sandbox_modes` per remote environment, such as remote devbox / ephemeral CI runner / shared host.
+- Host matching is a convenient classification but not strong device authentication. Avoid broad wildcards in high-risk environments.
+- Do not write organization-specific `remote_sandbox_config` in Harness distribution `codex/.codex/config.toml`.
+- Since Codex `0.123.0`, `codex exec` inherits root-level shared flags, so do not add duplicate `--approval-policy` / `--sandbox` pairs on the wrapper side.
+- `scripts/codex-companion.sh task --write` adding `--sandbox workspace-write` is translating Harness's "write task" intent to exec-local, not duplicating root shared flags.
+- `scripts/codex/codex-exec-wrapper.sh`'s `--full-auto` is maintained in 53.2.4. If changed, add regression tests for approval/sandbox behavior in a separate task.
 
-requirements example:
+Requirements example:
 
 ```toml
 allowed_sandbox_modes = ["read-only"]
@@ -277,138 +274,138 @@ hostname_patterns = ["devbox-*.corp.example.com"]
 allowed_sandbox_modes = ["read-only", "workspace-write"]
 ```
 
-**使用パターン**（公式プラグイン経由）:
+**Usage patterns** (via official plugin):
 ```bash
-bash scripts/codex-companion.sh task --write "タスク内容"
-# または stdin 経由
+bash scripts/codex-companion.sh task --write "task description"
+# Or via stdin
 cat /tmp/prompt.md | bash scripts/codex-companion.sh task --write
 ```
 
-### harness-mem — メモリ設定
+### harness-mem — Memory setup
 
-Unified Harness Memory の設定を行う。
+Configure Unified Harness Memory.
 
 ```bash
-# メモリディレクトリ作成
+# Create memory directories
 mkdir -p .claude/agent-memory/claude-code-harness-worker
 mkdir -p .claude/agent-memory/claude-code-harness-reviewer
 
-# MEMORY.md テンプレート配置
+# Place MEMORY.md template
 cat > .claude/agent-memory/claude-code-harness-worker/MEMORY.md << 'EOF'
 # Worker Agent Memory
 
 ## Project Context
-[プロジェクト概要]
+[Project overview]
 
 ## Patterns
-[学習パターン]
+[Learned patterns]
 EOF
 ```
 
-### mirrors — 公開 skill bundle 同期
+### mirrors — Public skill bundle sync
 
-Windows の `core.symlinks=false` では repository symlink が通常ファイルになり、`harness-*` skill が command 一覧に出なくなることがあります。公開 bundle は実ディレクトリ mirror として同期します。
+On Windows with `core.symlinks=false`, repository symlinks become regular files and `harness-*` skills may not appear in the command list. Public bundles are synced as real directory mirrors.
 
 ```bash
 ./scripts/sync-skill-mirrors.sh
 ./scripts/sync-skill-mirrors.sh --check
 ```
 
-更新対象:
+Update targets:
 
 - `skills/`
 - `codex/.codex/skills/`
 - `opencode/skills/`
 
-### agents — エージェント設定
+### agents — Agent configuration
 
-agents/ の3エージェント構成を設定する。
+Configure the 3-agent setup in agents/.
 
 ```
 agents/
-├── worker.md      # 実装担当（task-worker + codex-implementer + error-recovery）
-├── reviewer.md    # レビュー担当（code-reviewer + plan-critic）
-└── scaffolder.md  # 足場担当（project-analyzer + scaffolder）
+├── worker.md      # Implementation agent (task-worker + codex-implementer + error-recovery)
+├── reviewer.md    # Review agent (code-reviewer + plan-critic)
+└── scaffolder.md  # Scaffolding agent (project-analyzer + scaffolder)
 ```
 
-### localize — ルールローカライズ
+### localize — Rule localization
 
-`.claude/rules/` のルールを現プロジェクトに適応する。
+Adapt rules in `.claude/rules/` to the current project.
 
 ```bash
-# ルール一覧確認
+# Check rule list
 ls .claude/rules/
 
-# プロジェクト固有ルールの追加
+# Add project-specific rules
 cat >> .claude/rules/project-rules.md << 'EOF'
 # Project-Specific Rules
-[プロジェクト固有ルール]
+[Project-specific rules]
 EOF
 ```
 
-## Plugin インストール (v2.1.71+ Marketplace)
+## Plugin install (v2.1.71+ Marketplace)
 
-v2.1.71 で Marketplace の安定性が大幅に改善された。
-Claude Code 2.1.117-2.1.118 以降の plugin / managed settings 方針は
-`docs/plugin-managed-settings-policy.md` を正本として扱う。
+Marketplace stability was significantly improved in v2.1.71.
+For plugin/managed settings policy since Claude Code 2.1.117-2.1.118,
+use `docs/plugin-managed-settings-policy.md` as the source of truth.
 
-### 推奨インストール方式
+### Recommended install method
 
 ```bash
-# @ref 形式でバージョン固定（推奨）
+# Pin version with @ref format (recommended)
 claude plugin install owner/repo@v4.0.0
 
-# 最新版
+# Latest version
 claude plugin install owner/repo
 ```
 
-`owner/repo@vX.X.X` 形式を推奨。`@ref` パーサー修正により、タグ・ブランチ・コミットハッシュいずれも正確に解決される。
+The `owner/repo@vX.X.X` format is recommended. With the `@ref` parser fix, tags, branches, and commit hashes all resolve accurately.
 
-### アップデート
+### Updates
 
 ```bash
 claude plugin update owner/repo
 ```
 
-v2.1.71 で update 時の merge conflict が修正され、安定したアップデートが可能になった。
+Update merge conflicts were fixed in v2.1.71, enabling stable updates.
 
-### その他の改善点
+### Other improvements
 
-- MCP server 重複排除: 同一 MCP サーバーの多重登録を自動防止
-- `/plugin uninstall` が `settings.local.json` を使用: ユーザーローカル設定に正確に反映
+- MCP server deduplication: Automatically prevents duplicate registration of the same MCP server
+- `/plugin uninstall` uses `settings.local.json`: Accurately reflected in user-local settings
 
 ### Managed marketplace / dependency policy (v2.1.117+)
 
-企業利用で plugin marketplace を制御する場合は、Claude Code 本体の managed settings を使う。
-Harness は独自の marketplace resolver や dependency resolver を重ねない。
+For controlling plugin marketplace in enterprise use, use Claude Code's own managed settings.
+Harness does not layer its own marketplace resolver or dependency resolver on top.
 
-| 項目 | 用途 | Harness の扱い |
-|------|------|----------------|
-| `extraKnownMarketplaces` | チームに推奨 marketplace を案内・登録する | 通常の onboarding ではこちらを優先 |
-| `blockedMarketplaces` | 特定 marketplace source をブロックする | managed settings 専用。通常ユーザー向け default には入れない |
-| `strictKnownMarketplaces` | 許可した marketplace source だけ追加できるようにする | managed settings 専用。通常ユーザー向け default には入れない |
-| plugin dependency auto-resolve | `dependencies` の自動 install / missing dependency hints | Claude Code 本体に任せる。Harness 独自 resolver は追加しない |
-| plugin `themes/` directory | plugin が theme を配布する | 今回は P: 将来タスク。Harness は theme を同梱しない |
+| Item | Purpose | Harness handling |
+|------|---------|-----------------|
+| `extraKnownMarketplaces` | Guide/register recommended marketplace for team | Prioritize this for normal onboarding |
+| `blockedMarketplaces` | Block specific marketplace sources | Managed settings only; do not include in normal user defaults |
+| `strictKnownMarketplaces` | Allow only permitted marketplace sources | Managed settings only; do not include in normal user defaults |
+| Plugin dependency auto-resolve | Auto-install `dependencies` / missing dependency hints | Delegate to Claude Code itself; do not add Harness-specific resolver |
+| Plugin `themes/` directory | Plugin distributes themes | P: Future task for now; Harness does not bundle themes |
 
-`DISABLE_AUTOUPDATER` は自動更新を止める。
-`DISABLE_UPDATES` は手動 `claude update` まで止めるため、企業の固定バージョン運用向け。
-Harness の project default にはどちらも入れず、必要な組織が managed settings または端末管理で設定する。
+`DISABLE_AUTOUPDATER` stops auto-updates.
+`DISABLE_UPDATES` stops even manual `claude update`, so it's for enterprises running fixed versions.
+Neither is included in Harness project defaults; organizations that need them configure via managed settings or device management.
 
-依存関係が欠けた場合は、まず Claude Code の `/plugin` Errors、`/doctor`、`claude plugin list --json` を確認する。
-marketplace 未登録が原因なら `/plugin marketplace add` または `claude plugin marketplace add` で登録し、本体の auto-resolve に任せる。
+When dependencies are missing, first check Claude Code's `/plugin` Errors, `/doctor`, `claude plugin list --json`.
+If an unregistered marketplace is the cause, register with `/plugin marketplace add` or `claude plugin marketplace add` and let the built-in auto-resolve handle it.
 
-## Maintenance — ファイル整理
+## Maintenance — File organization
 
-定期メンテナンスタスク:
+Regular maintenance tasks:
 
-| タスク | コマンド |
-|--------|---------|
-| 古いログ削除 | `find .claude/logs -mtime +30 -delete` |
-| Plans.md 圧縮 | 完了タスクをアーカイブセクションに移動 |
-| 古いトレース削除 | `tail -1000 .claude/state/agent-trace.jsonl > /tmp/trace && mv /tmp/trace .claude/state/agent-trace.jsonl` |
+| Task | Command |
+|------|---------|
+| Delete old logs | `find .claude/logs -mtime +30 -delete` |
+| Compress Plans.md | Move completed tasks to archive section |
+| Delete old traces | `tail -1000 .claude/state/agent-trace.jsonl > /tmp/trace && mv /tmp/trace .claude/state/agent-trace.jsonl` |
 
-## 関連スキル
+## Related skills
 
-- `harness-plan` — セットアップ後にプロジェクト計画を作成
-- `harness-work` — セットアップ後にタスクを実行
-- `harness-review` — セットアップ設定をレビュー
+- `harness-plan` — Create project plan after setup
+- `harness-work` — Execute tasks after setup
+- `harness-review` — Review setup configuration

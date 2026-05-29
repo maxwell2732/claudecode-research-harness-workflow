@@ -1,82 +1,81 @@
 # Dual Review (--dual)
 
-Claude Reviewer と Codex Reviewer を並行実行し、異なるモデル視点でレビュー品質を向上させる。
-`--dual` は単なる二重チェックではなく、必要時に TeamAgent Debate を組み合わせて、
-仕様正本・Plans.md・デグレの合格ラインを複数視点で潰し込む。
+Run Claude Reviewer and Codex Reviewer in parallel to improve review quality with different model perspectives.
+`--dual` is not simply a double-check; it combines TeamAgent Debate when needed to eliminate gaps in spec source of truth / Plans.md / regression pass thresholds from multiple viewpoints.
 
-## 前提条件
+## Prerequisites
 
-- Codex CLI がインストール済み（`scripts/codex-companion.sh setup --json` で確認）
-- Codex が利用不可の場合、Claude 単独レビューにフォールバック
+- Codex CLI installed (verify with `scripts/codex-companion.sh setup --json`)
+- When Codex is unavailable, fall back to Claude-only review
 
-## 実行フロー
+## Execution flow
 
-1. Codex の利用可否を確認する
+1. Check Codex availability
 
    ```bash
    CODEX_AVAILABLE="$(bash scripts/codex-companion.sh setup --json 2>/dev/null | jq -r '.ready // false')"
    ```
 
-2. Claude Reviewer を Task ツールで起動（通常の review フロー）
+2. Launch Claude Reviewer with Task tool (normal review flow)
 
-3. Codex が利用可能であれば `scripts/codex-companion.sh review` を並行起動
+3. If Codex is available, launch `scripts/codex-companion.sh review` in parallel
 
    ```bash
-   # BASE_REF が渡されている場合は --base を指定。--json で構造化出力を取得
+   # Specify --base when BASE_REF is provided. Use --json for structured output
    bash scripts/codex-companion.sh review --base "${BASE_REF:-HEAD~1}" --json
    ```
 
-4. 両方の結果を待ち合わせ
+4. Wait for both results
 
-5. 以下のいずれかに当たる場合は TeamAgent Debate を実行する
-   - Claude と Codex の verdict が割れた
-   - 仕様正本、Plans.md、デグレのいずれかで不一致または未確認がある
-   - `critical` / `major` 候補が 1 件以上ある
-   - `--team-debate` が指定されている
+5. Run TeamAgent Debate if any of the following apply:
+   - Claude and Codex verdicts diverge
+   - Mismatch or unconfirmed items in spec source of truth, Plans.md, or regression
+   - One or more `critical` / `major` candidates
+   - `--team-debate` is specified
 
-6. 合格ラインを固定してから verdict をマージする
+6. Fix the pass threshold first, then merge verdicts
 
 ## TeamAgent Debate
 
-TeamAgent Debate は、異なる見解をあえて衝突させる read-only review pass として扱う。
+TeamAgent Debate is treated as a read-only review pass that intentionally collides different viewpoints.
 
-| Agent | 主な問い |
-|-------|----------|
-| Spec Agent | 仕様正本と実装は矛盾していないか |
-| Plans Agent | `Plans.md` の task / DoD / Depends と証跡は一致しているか |
-| Regression Agent | 既存挙動、既存テスト、配布 mirror、CLI/skill UX にデグレはないか |
-| Skeptic Agent | 合格させたい前提で見落としている major risk はないか |
+| Agent | Primary question |
+|-------|----------------|
+| Spec Agent | Is the spec source of truth in conflict with the implementation? |
+| Plans Agent | Does the evidence match the `Plans.md` task / DoD / Depends? |
+| Regression Agent | Are there regressions in existing behavior, existing tests, distribution mirrors, CLI/skill UX? |
+| Skeptic Agent | Are there major risks being overlooked under the assumption of wanting to pass? |
 
-Claude Code では Task tool を使う。
-Codex 環境では native TeamAgent が使えないことがあるため、
-Codex reviewer subagent、`codex-companion.sh review`、または明示的に分けた manual-pass で同じ観点を再現し、
-`team_agent_mode` に記録する。
+Use Task tool in Claude Code.
+When native TeamAgent is unavailable in Codex environments,
+reproduce the same perspectives with Codex reviewer subagent, `codex-companion.sh review`, or explicitly separated manual-pass,
+and record in `team_agent_mode`.
 
-## 合格ライン
+## Pass threshold
 
-最終 `APPROVE` の条件は次のすべて。
+Final `APPROVE` requires all of:
 
-- `critical` / `major` が 0 件
-- 仕様正本または `spec_skip_reason` と矛盾しない
-- `Plans.md` の task / DoD / Depends と矛盾しない
-- 既存挙動・既存テスト・配布 mirror・CLI/skill UX のデグレ証拠がない
-- Claude / Codex / TeamAgent の disagreement が解消済み、または `minor` / `recommendation` として理由付きで格下げ済み
+- Zero `critical` / `major`
+- No conflict with spec source of truth or `spec_skip_reason`
+- No conflict with `Plans.md` task / DoD / Depends
+- No regression evidence in existing behavior, existing tests, distribution mirrors, CLI/skill UX
+- Claude / Codex / TeamAgent disagreements are resolved or downgraded to `minor` / `recommendation` with reasoning
 
-## Verdict マージルール
+## Verdict merge rules
 
-以下の順に評価する:
+Evaluate in this order:
 
-   - 両方 APPROVE → `APPROVE`
-   - どちらかが REQUEST_CHANGES → `REQUEST_CHANGES`（厳しい方を採用）
-   - TeamAgent Debate が `critical` / `major` 相当の disagreement を残した → `REQUEST_CHANGES`
-   - 仕様正本 / Plans.md / デグレ gate が fail → `REQUEST_CHANGES`
-   - `critical_issues` は両方のリストを統合（重複排除なし）
-   - `major_issues` は両方のリストを統合（重複排除なし）
-   - `recommendations` は重複排除して統合
+   - Both APPROVE → `APPROVE`
+   - Either is REQUEST_CHANGES → `REQUEST_CHANGES` (adopt the stricter)
+   - TeamAgent Debate left `critical` / `major` equivalent disagreement → `REQUEST_CHANGES`
+   - Spec source of truth / Plans.md / regression gate fails → `REQUEST_CHANGES`
+   - `critical_issues`: merge both lists (no deduplication)
+   - `major_issues`: merge both lists (no deduplication)
+   - `recommendations`: merge with deduplication
 
-## 出力形式
+## Output format
 
-通常の `review-result.v1` スキーマに `dual_review` フィールドを追加する:
+Add `dual_review` field to the normal `review-result.v1` schema:
 
 ```json
 {
@@ -86,7 +85,7 @@ Codex reviewer subagent、`codex-companion.sh review`、または明示的に分
     "claude_verdict": "APPROVE | REQUEST_CHANGES",
     "codex_verdict": "APPROVE | REQUEST_CHANGES | unavailable | timeout",
     "merged_verdict": "APPROVE | REQUEST_CHANGES",
-    "divergence_notes": "判定が分かれた場合の理由。例: Claude は Performance で major 検出、Codex は問題なし"
+    "divergence_notes": "Reason when verdicts diverge. Example: Claude detected major in Performance, Codex found no issue"
   },
   "acceptance_bar": {
     "critical_major_zero": true,
@@ -108,31 +107,31 @@ Codex reviewer subagent、`codex-companion.sh review`、または明示的に分
 }
 ```
 
-### `codex_verdict` の特殊値
+### Special values for `codex_verdict`
 
-| 値 | 意味 |
-|----|------|
-| `"unavailable"` | Codex CLI がインストールされていないか利用不可 |
-| `"timeout"` | Codex レビューがタイムアウト（120 秒以内に応答なし） |
+| Value | Meaning |
+|-------|---------|
+| `"unavailable"` | Codex CLI not installed or unavailable |
+| `"timeout"` | Codex review timed out (no response within 120 seconds) |
 
-## フォールバック
+## Fallback
 
-- **Codex が利用不可**: Claude 単独で実行し、`codex_verdict: "unavailable"` を記録する
-- **Codex がタイムアウト**: Claude の verdict をそのまま採用し、`codex_verdict: "timeout"` を記録する
-- **Codex のレビュー出力が不正**: パース失敗として扱い、`codex_verdict: "unavailable"` を記録する
-- **TeamAgent が利用不可**: `team_debate.mode: "unavailable"` と理由を記録し、最低でも Spec / Plans / Regression の manual-pass を行う
+- **Codex unavailable**: Run with Claude only and record `codex_verdict: "unavailable"`
+- **Codex timeout**: Adopt Claude verdict as-is and record `codex_verdict: "timeout"`
+- **Codex review output invalid**: Treat as parse failure and record `codex_verdict: "unavailable"`
+- **TeamAgent unavailable**: Record `team_debate.mode: "unavailable"` with reason; perform at minimum Spec / Plans / Regression manual-pass
 
-Codex unavailable / timeout の場合でも、仕様正本・Plans.md・デグレの合格ラインは省略しない。
-TeamAgent unavailable のまま manual-pass もできない場合は `REQUEST_CHANGES` ではなく `decision_needed` として止める。
+Even when Codex is unavailable/timeout, do not skip spec source of truth / Plans.md / regression pass thresholds.
+When TeamAgent is unavailable and manual-pass is also impossible, stop as `decision_needed` rather than `REQUEST_CHANGES`.
 
-## Divergence Notes の書き方
+## Writing divergence_notes
 
-判定が一致した場合（`claude_verdict == codex_verdict`）は `divergence_notes` を空文字列にする。
+When verdicts match (`claude_verdict == codex_verdict`), set `divergence_notes` to empty string.
 
-判定が分かれた場合は以下の形式で記録する:
+When verdicts diverge, record in this format:
 
 ```
-Claude: REQUEST_CHANGES（Security - SQLインジェクションのリスク）
-Codex: APPROVE（同箇所を問題なしと判定）
-採用: REQUEST_CHANGES（厳しい方を優先）
+Claude: REQUEST_CHANGES (Security - SQL injection risk)
+Codex: APPROVE (No issue found at same location)
+Adopted: REQUEST_CHANGES (Adopt the stricter)
 ```
