@@ -1,3 +1,5 @@
+<a href="https://doi.org/10.5281/zenodo.20453003"><img src="https://zenodo.org/badge/1252855897.svg" alt="DOI"></a>
+
 # Claude Code Research Harness Workflow
 
 > **面向 Agent 辅助实证研究的受控执行框架。**  
