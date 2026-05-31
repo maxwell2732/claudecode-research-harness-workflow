@@ -58,6 +58,36 @@ Claude Code Research Harness 的用法是让智能体在制度化环境里工作
 > **没有脚本，没有日志，就没有结论。**
 
 ---
+## 快速上手指南
+
+在开始之前：必须已安装 Claude Code，Python 3 （或 Miniconda）和 git（同时注册 GitHub 账号）。
+
+### Step 1. Fork & Clone 
+
+```bash
+# 在 GitHub 上克隆此仓库（在仓库页面点击“ Fork ”），然后：
+# （ 将“ YOUR_USERNAME ”替换为你自己的 GitHub 用户名 ）
+
+git clone https://github.com/maxwell2732/claudecode-research-harness-workflow.git
+cd claudecode-research-harness-workflow
+```
+
+【小提示】也可以将本仓库下载（zip文件），本地解压缩。但这种方法无法进行版本控制，故不太推荐。
+
+### Step 2. 打开 Claude Code 并复制粘贴以下指令
+
+```bash
+# 确保已进入本地仓库目录下，如 C:\claudecode-research-harness-workflow， 然后启动 Claude Code ：
+claude
+```
+
+以数据清理为例，将准备进行清理的原始数据放入到 ```data/``` 文件夹中，然后根据自己需求修改以下 Prompt 并复制粘贴到 CC 中：
+
+> 我把要清理合并的原始数据 [DATA NAME] 放到 ```data/```里了，请阅读 claude.md 等 配置文件并严格执行，将数据合并为一个面板数据 csv，同时生成 codebook csv，以及执行报告 md，用 /plan mode。
+
+该 Prompt 用途： CC 会阅读仓库中的工作流配置文件，调用相应 agents 和 skill，计划并实施清理流程，生成结果并验证，过程中严格遵循 Harness 思想。
+
+---
 
 ## 实证研究中的 Harness 和软件开发中的 Harness 有什么不同？
 
@@ -159,7 +189,7 @@ Harness 支持局部进入，但每个命令都会提示：如果跳过前序阶
 
 ---
 
-## 快速开始
+## 使用方法
 
 ### 1. 克隆仓库并用 Claude Code 打开
 
