@@ -4,8 +4,7 @@
 # Dev-only docs / planning
 Plans.md                export-ignore
 CONTRIBUTING.md         export-ignore
-AGENTS.md               export-ignore
-CLAUDE.md               export-ignore
+# CLAUDE.md and .claude/ stay in ZIP downloads: users need them to run the harness.
 
 # Dev configs (example/schema) — not needed by end users
 .claude-code-harness.config.yaml            export-ignore
@@ -15,7 +14,6 @@ claude-code-harness.config.schema.json      export-ignore
 # CI / dev tooling
 .github/                export-ignore
 .githooks/              export-ignore
-.claude/                export-ignore
 .cursor/                export-ignore
 .private/               export-ignore
 

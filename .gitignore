@@ -40,6 +40,7 @@ env.local
 
 # Local development
 .claude/*
+!.claude/hooks/
 !.claude/rules/
 !.claude/output-styles/
 !.claude/memory/
@@ -69,7 +70,7 @@ harness-ui/CLAUDE.md
 
 # 2-Agent setup files (auto-generated)
 /AGENTS.md
-# /CLAUDE.md — tracked in this project (research harness instructions)
+# /CLAUDE.md is tracked in this project (research harness instructions)
 /Plans.md
 /.claude-code-harness-version
 /.orphaned_at

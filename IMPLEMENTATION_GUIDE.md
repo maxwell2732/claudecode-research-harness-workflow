@@ -1,7 +1,7 @@
 # Implementation Guide
 
 This guide is the short implementation map for Claude Code Harness
-contributors. It complements `README.md`, `AGENTS.md`, and `CLAUDE.md`.
+contributors. It complements `README.md` and `CLAUDE.md`.
 
 ## Current Architecture
 

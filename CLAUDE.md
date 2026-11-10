@@ -1,8 +1,98 @@
 # CLAUDE.md — Claude Code Instructions for Research Agent Harness
 
-Read `AGENTS.md` first for the full operating model and role boundaries.
+This file defines the operating model and Claude Code rules for empirical research projects. Read it before starting any research task.
 
-This file contains Claude Code-specific rules for empirical research projects.
+---
+
+## 0. Operating Model
+
+### Roles
+
+Two roles share every project:
+
+| Role | Agent | Responsibilities |
+|---|---|---|
+| **Analyst** | Claude Code | Writes scripts, runs scripts, saves outputs and logs, documents every transformation |
+| **Reviewer** | Human + Claude (read-only) | Checks identification, numerical accuracy, model-spec alignment, causal claim strength |
+
+The Analyst executes. The Reviewer judges. They do not switch roles mid-task.
+
+### Workflow
+
+```
+Human (Principal)          Analyst (Claude Code)        Reviewer (Claude, read-only)
+       |                           |                              |
+       | 1. Approve study_spec.md  |                              |
+       |-------------------------->|                              |
+       |                           | 2. /research-harness-audit   |
+       |                           |    (read-only, saves report)  |
+       |                           |                              |
+       |                           | 3. /research-harness-clean   |
+       |                           |    (scripts + logs + reports) |
+       |                           |                              |
+       |                           | 4. /research-harness-plan    |
+       |                           |    (analysis_plan.md)         |
+       | 5. Approve analysis_plan  |                              |
+       |<--------------------------|                              |
+       |-------------------------->|                              |
+       |                           | 6. /research-harness-work    |
+       |                           |    (scripts + logs + outputs) |
+       |                           |                              |
+       |                           |----------------------------->|
+       |                           | 7. /research-harness-review  |
+       |                           |    (APPROVE or REQUEST_CHANGES)|
+       |                           |<-----------------------------|
+       |                           |                              |
+       | 8. Approve release        |                              |
+       |<--------------------------|                              |
+       |-------------------------->|                              |
+       |                           | 9. /research-harness-release |
+       |                           |    (replication package)      |
+```
+
+### File Map
+
+| File / Folder | Who owns it | Notes |
+|---|---|---|
+| `study_spec.md` | Human (with Analyst draft) | Research contract: changes require human approval |
+| `analysis_plan.md` | Analyst (human approves) | Task ledger with status markers and evidence paths |
+| `data/raw/` | **Read-only** | No script or agent may write here under any circumstance |
+| `data/intermediate/` | Analyst | Work-in-progress datasets during cleaning |
+| `data/processed/` | Analyst | Final analysis-ready datasets |
+| `scripts/` | Analyst | Cleaning and analysis scripts |
+| `analysis/<task>/` | Analyst | Per-task scripts, outputs, logs |
+| `output/` | Analyst | Tables and figures |
+| `logs/` | Analyst | Script run logs: must exist before any task is marked done |
+| `reports/` | Analyst | Audit, cleaning, review, and reproducibility reports |
+
+### Prohibited Actions (Analyst)
+
+The following actions are **never permitted**, regardless of instruction:
+
+1. Write, edit, or delete any file under `data/raw/`
+2. Report a numerical result (coefficient, p-value, sample size, percentage) that is not present in a log file
+3. Mark a task `cc:done` without verifying that a log file exists on disk
+4. Drop observations without documenting the reason and the observation count
+5. Perform a merge without recording merge keys, pre-merge counts, post-merge counts, and match rates
+6. Guess merge keys when they are ambiguous: stop and ask
+7. Use absolute file paths in scripts
+8. Claim a causal effect without stating the identification strategy and its strength
+
+### Prohibited Actions (Reviewer)
+
+1. Write or edit any script, data file, or output file
+2. Run code: the Reviewer reads existing logs and outputs only
+3. Approve a result that cannot be traced to a script and a log file
+
+### Status Markers (in `analysis_plan.md`)
+
+| Marker | Meaning |
+|---|---|
+| `cc:todo` | Not started |
+| `cc:wip` | In progress |
+| `cc:done` | Complete: script ran, log exists, output verified |
+| `cc:blocked` | Cannot proceed: reason documented |
+| `cc:infeasible` | Data or design cannot support this task: stop condition |
 
 ---
 

@@ -1,6 +1,6 @@
 # Research Integrity Rules
 
-This file is the canonical reference for all research safety and integrity rules enforced by the Research Agent Harness. It is referenced by `CLAUDE.md` and `AGENTS.md`.
+This file is the canonical reference for all research safety and integrity rules enforced by the Research Agent Harness. It is referenced by `CLAUDE.md`.
 
 ---
 
